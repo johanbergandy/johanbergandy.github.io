@@ -2070,6 +2070,17 @@ document.querySelectorAll('.reveal').forEach((el, i) => {
     el.style.transitionDelay = `${(i % 5) * 0.06}s`;
     obs.observe(el);
 });
+// Fallback : reveal all elements in viewport on load (fixes GitHub Pages cold-start)
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.querySelectorAll('.reveal:not(.v)').forEach(el => {
+            const r = el.getBoundingClientRect();
+            if (r.top < window.innerHeight && r.bottom > 0) {
+                el.classList.add('v');
+            }
+        });
+    }, 100);
+});
 
 // ══════════════ SMOOTH SCROLL ══════════════
 document.querySelectorAll('a[href^="#"]').forEach(a => {
