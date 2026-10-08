@@ -1234,7 +1234,11 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
     for (const l of m.lines) {
       if (l.c.kind !== "fixe") continue;
       const tx = m.txs.filter((t) => classify(t) === l.c.id && t.amount < 0);
-      if (tx.length >= 2) out.push({ ic: "repeat", cls: "warn", t: `<b>${esc(l.c.name)}</b> a été prélevé ${tx.length} fois (${tx.map((t) => t.date).sort().map((d) => `le ${Number(d.slice(8))}`).join(", ")}) : ${eur(l.actual)} au lieu de ${eur(l.plan)}. À vérifier.` });
+      const ds = tx.map((t) => t.date).sort();
+      const close = ds.some((x, i) => i > 0 && (new Date(x) - new Date(ds[i - 1])) / 864e5 < 20);
+      const when = ds.map((x) => `le ${Number(x.slice(8))}`).join(", ");
+      if (tx.length >= 2 && close) out.push({ ic: "repeat", cls: "warn", t: `<b>${esc(l.c.name)}</b> a été prélevé ${tx.length} fois à quelques jours d'écart (${when}) : ${eur(l.actual)} au lieu de ${eur(l.plan)}. À vérifier.` });
+      else if (tx.length >= 2) out.push({ ic: "repeat", cls: "", t: `<b>${esc(l.c.name)}</b> est passé ${tx.length} fois ce mois-là (${when}). Les deux prélèvements sont à un mois d'écart : le dernier est sans doute celui du mois suivant, en avance.` });
       else if (ym < now && l.c.active && l.plan > 0 && !tx.length) out.push({ ic: "alert", cls: "", t: `<b>${esc(l.c.name)}</b> n'apparaît pas dans le relevé de ${mName}. Payé ailleurs, ou à une autre date ?` });
     }
     const big = expTx.filter((t) => !(cat(classify(t)) && cat(classify(t)).kind === "fixe")).sort((a, b) => a.amount - b.amount)[0];
