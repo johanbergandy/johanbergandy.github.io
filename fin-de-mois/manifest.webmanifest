@@ -1,0 +1,29 @@
+{
+  "name": "Fin de mois",
+  "short_name": "Fin de mois",
+  "description": "Ce qu'il te restera à la fin du mois, et ce que change une dépense avant de la faire.",
+  "lang": "fr",
+  "start_url": "./#mois",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F5C45",
+  "theme_color": "#0F5C45",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
