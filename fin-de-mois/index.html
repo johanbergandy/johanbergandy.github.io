@@ -576,6 +576,8 @@ details.tri-more > .picks2 { margin-top: 8px; }
 .btn > svg { width: 20px; height: 20px; flex: none; }
 .row .name.more { color: var(--accent); font-size: 15px; }
 .hero .today { margin-top: -4px; }
+.switch.addcash { background: var(--surface); border-radius: var(--r-list); padding: 8px 12px 8px 16px; }
+.switch.addcash span { font-size: 16px; }
 
 </style>
 
@@ -1031,16 +1033,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
       added.push({ id: uid(), date, label, amount: round2(amt - fee), source: "revolut", key, time: (rawDate.match(/\d{2}:\d{2}/) || [])[0] || undefined });
       res.months.add(ymOf(date));
     }
-    for (const t of added) {
-      const twin = state.tx.find((m) => LIVE.includes(m.source) && !m._used && Math.abs(m.amount - t.amount) < 0.005 && Math.abs((new Date(m.date) - new Date(t.date)) / 864e5) <= 3);
-      if (twin) {
-        twin._used = true;
-        const k = classify(t);
-        if ((k === null || k === "hors") && twin.manualCat) t.manualCat = twin.manualCat;
-        if (twin.note) t.note = twin.note;
-        res.merged++;
-      }
-    }
+    mergeTwins(added, res);
     state.tx = state.tx.filter((m) => !m._used).concat(added);
     sortTx();
     if (added.length) state.settings.lastImportAt = new Date().toISOString();
@@ -1354,7 +1347,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const k = classify(t), c = cat(k);
     const cn = c ? c.name : "Autre";
     const name = t.label && !(t.source === "manuel" && t.label === cn) ? t.label : cn;
-    const sub = [name === cn ? (c ? "" : "Pas reconnue") : cn, withDay ? relDay(t.date) : ""].filter(Boolean).join(" · ");
+    const sub = [name === cn ? (c ? "" : "Pas reconnue") : cn, t.cash ? "en liquide" : "", withDay ? relDay(t.date) : ""].filter(Boolean).join(" · ");
     return `<button class="row" data-act="openTx" data-id="${esc(t.id)}">${c ? tile(c) : tileRaw("#8E8E93", "question")}<span class="name">${esc(name)}</span><span class="amt">${eur(-t.amount)}</span><span class="sub">${esc(cap(sub))}</span></button>`;
   }
   function recentHtml(n) {
@@ -1374,7 +1367,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const funCats = FUN_IDS.map(cat).filter((c) => c && c.kind === "enveloppe");
     const budget = round2(funCats.filter((c) => c.active).reduce((a, c) => a + c.budget, 0));
     if (!(budget > 0)) return null;
-    const spent = round2(state.tx.filter((t) => t.date >= pay.date && t.date <= today && t.amount < 0 && FUN_IDS.includes(classify(t))).reduce((a, t) => a - t.amount, 0));
+    const spent = round2(state.tx.filter((t) => t.date >= pay.date && t.date <= today && (t.amount < 0 || t.cashOffset) && FUN_IDS.includes(classify(t))).reduce((a, t) => a - t.amount, 0));
     const days = Math.round((new Date(today) - new Date(pay.date)) / 864e5) + 1;
     const pd = new Date(pay.date + "T12:00:00"); const next = new Date(pd); next.setMonth(next.getMonth() + 1);
     if (next.getDate() !== pd.getDate()) next.setDate(0);
@@ -1393,7 +1386,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
   // Ce qui est parti aujourd'hui (saisies, Apple Pay, relevé), hors factures
   function spentToday() {
     const d = todayISO();
-    return round2(state.tx.filter((t) => t.date === d && t.amount < 0 && t.source !== "sim").filter((t) => { const k = classify(t); return k !== "hors" && !(cat(k) && cat(k).kind === "fixe"); }).reduce((a, t) => a - t.amount, 0));
+    return round2(state.tx.filter((t) => t.date === d && (t.amount < 0 || t.cashOffset) && t.source !== "sim").filter((t) => { const k = classify(t); return k !== "hors" && !(cat(k) && cat(k).kind === "fixe"); }).reduce((a, t) => a - t.amount, 0));
   }
 
   function tweenFree(to) {
@@ -1435,6 +1428,35 @@ details.tri-more > .picks2 { margin-top: 8px; }
     state.tx = state.tx.filter((t) => !marks.includes(t));
     save(); haptic(); render();
     toast(`${catName(id)} : remise à payer`, () => { state.tx.push(...marks); sortTx(); save(); render(); });
+  }
+  // À l'import, chaque dépense ajoutée à la main est remplacée par sa vraie ligne du relevé.
+  // D'abord au centime près, puis à un montant proche (12 € tapés pour 11,90 €) : la même catégorie passe avant.
+  function mergeTwins(added, res) {
+    const days = (a, b) => Math.abs((new Date(a) - new Date(b)) / 864e5);
+    const live = () => state.tx.filter((m) => (m.source === "manuel" || m.source === "applepay") && !m._used && !m.cash && !m.cashOffset && m.amount < 0);
+    const take = (t, twin) => {
+      twin._used = true; t._got = true;
+      const k = classify(t);
+      if ((k === null || k === "hors") && twin.manualCat) t.manualCat = twin.manualCat;
+      if (twin.note) t.note = twin.note;
+      res.merged++;
+    };
+    for (const t of added) {
+      if (!(t.amount < 0)) continue;
+      const tw = live().filter((m) => Math.abs(m.amount - t.amount) < 0.005 && days(m.date, t.date) <= 3).sort((a, b) => days(a.date, t.date) - days(b.date, t.date))[0];
+      if (tw) take(t, tw);
+    }
+    // Montant proche : seulement si la ligne du relevé tombe dans la même catégorie, ou n'est pas reconnue.
+    // Les paires les plus proches passent en premier.
+    const pairs = [];
+    for (const m of live()) for (const t of added) {
+      if (t._got || !(t.amount < 0) || days(m.date, t.date) > 3 || Math.abs(t.amount - m.amount) > Math.max(2, Math.abs(m.amount) * 0.15)) continue;
+      const k = classify(t);
+      if (k !== null && m.manualCat && k !== m.manualCat) continue;
+      pairs.push({ m, t, score: (k === m.manualCat ? 0 : 50) + Math.abs(t.amount - m.amount) * 10 + days(m.date, t.date) });
+    }
+    for (const x of pairs.sort((a, b) => a.score - b.score)) if (!x.m._used && !x.t._got) take(x.t, x.m);
+    for (const t of added) delete t._got;
   }
   function reconcilePaid() {
     const real = new Set(state.tx.filter((t) => t.source === "revolut").map((t) => { const k = classify(t); return k && cat(k) && cat(k).kind !== "enveloppe" ? `${k}|${ymOf(t.date)}` : null; }).filter(Boolean));
@@ -1478,6 +1500,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
         <button type="button" class="when" data-act="addWhen" data-v="${isoShift(-1)}" aria-pressed="false">Hier</button>
         <label class="when" id="whenOther"><span id="whenOtherTxt">Autre jour</span><input type="date" id="addDateIn" max="${todayISO()}" value="${todayISO()}" aria-label="Autre jour"></label>
       </div>
+      ${cat("especes") ? `<label class="switch addcash" for="addCash"><span>Payé en liquide<small>Le retrait au distributeur est déjà compté</small></span><input type="checkbox" id="addCash"></label>` : ""}
       <div class="keys">${keys}</div>
       <div class="sheet-foot"><button class="btn primary" data-act="addSave">Ajouter</button></div>`, "Nouvelle dépense");
     const sh = sheetHost.querySelector(".sheet"); if (sh) sh.classList.add("add");
@@ -1516,6 +1539,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const now = reste(), dim = daysIn(ymNow());
     if (!(a > 0)) { aft.className = "after"; aft.innerHTML = `<span>Pour finir le mois : <b>${eur0(now.R)}</b></span>`; return; }
     if (padDate && ymOf(padDate) < ymNow()) { aft.className = "after"; aft.innerHTML = `<span>Comptée en ${MONTHS[Number(padDate.slice(5, 7)) - 1]}, pas sur ce mois-ci</span>`; return; }
+    if ((document.getElementById("addCash") || {}).checked) { aft.className = "after"; aft.innerHTML = `<span>En liquide : déjà compté au retrait. Toujours <b>${eur0(now.R)}</b></span>`; return; }
     const { r } = whatIf(a, padCat);
     let cls = "after", txt;
     if (r.R < 0) { cls += " ko"; txt = `Après ça : il manquerait <b>${eur0(-r.R)}</b> d'ici le ${dim}`; }
@@ -1530,7 +1554,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
 
   // Livraisons et fins de soirée : ce que ça fait déjà ce mois-ci, sans commentaire
   function regretLine(a, catId) {
-    const ym = ymNow(), mtx = state.tx.filter((t) => ymOf(t.date) === ym && t.amount < 0);
+    const ym = ymNow(), mtx = state.tx.filter((t) => ymOf(t.date) === ym && (t.amount < 0 || t.cashOffset));
     if (catId === "livraisons") {
       const lt = mtx.filter((t) => classify(t) === "livraisons");
       const n = lt.length + 1, tot = round2(lt.reduce((x, t) => x - t.amount, 0) + a);
@@ -1564,12 +1588,18 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const c = padCat ? cat(padCat) : null;
     if (!c) { shake(document.getElementById("pickGrid")); showErr("addErr", "Choisis la catégorie."); return; }
     const now = new Date(), d = padDate || todayISO(), isToday = d === todayISO();
-    const tx = { id: uid(), date: d, time: isToday ? `${pad(now.getHours())}:${pad(now.getMinutes())}` : undefined, label: c.name, amount: -round2(a), source: "manuel", manualCat: c.id };
-    state.tx.push(tx); sortTx();
+    const cash = !!(document.getElementById("addCash") || {}).checked && !!cat("especes") && c.id !== "especes";
+    const time = isToday ? `${pad(now.getHours())}:${pad(now.getMinutes())}` : undefined;
+    const tx = { id: uid(), date: d, time, label: c.name, amount: -round2(a), source: "manuel", manualCat: c.id };
+    if (cash) tx.cash = true;
+    state.tx.push(tx);
+    // En liquide : la dépense va dans sa catégorie, et la même somme sort des espèces déjà retirées
+    if (cash) state.tx.push({ id: uid(), date: d, time, label: `Liquide utilisé : ${c.name}`, amount: round2(a), source: "manuel", manualCat: "especes", cashOffset: tx.id });
+    sortTx();
     state.settings.lastPadCat = c.id;
     save(); typed = ""; padDate = null; padCat = null;
     closeSheet(); render(); haptic();
-    toast(`Ajouté : ${eur(a)}, ${c.name}${isToday ? "" : `, ${whenLabel(d).toLowerCase()}`}`, () => { state.tx = state.tx.filter((t) => t.id !== tx.id); save(); render(); toast("Dépense retirée"); });
+    toast(`Ajouté : ${eur(a)}, ${c.name}${cash ? ", en liquide" : ""}${isToday ? "" : `, ${whenLabel(d).toLowerCase()}`}`, () => { state.tx = state.tx.filter((t) => t.id !== tx.id && t.cashOffset !== tx.id); save(); render(); toast("Dépense retirée"); });
   }
 
   function howSheet() {
@@ -1659,7 +1689,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const out = [];
     const groups = new Map();
     for (const t of m.txs) {
-      if (t.amount >= 0) continue;
+      if (t.amount >= 0 && !t.cashOffset) continue;
       const k = classify(t);
       if (k === "hors" || (cat(k) && cat(k).kind !== "enveloppe")) continue;
       if (k === "nourriture" || k === "essence") continue;
@@ -1742,7 +1772,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     app.innerHTML = html;
   }
   function opsList(m) {
-    let list = m.txs.slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+    let list = m.txs.filter((t) => !t.cashOffset).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
     if (opsOnly) list = list.filter((t) => classify(t) === null);
     const q = norm(opsQuery);
     if (q) { const qa = parseAmount(opsQuery); list = list.filter((t) => norm(t.label).includes(q) || norm(t.note).includes(q) || norm(catName(classify(t))).includes(q) || (isFinite(qa) && Math.abs(Math.abs(t.amount) - Math.abs(qa)) < 0.005)); }
@@ -1755,7 +1785,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
       let tag, tl;
       if (k === null) { const s = suggest(t); tag = `<span class="tag">Autre</span>${s ? ` <span class="tag sugg">${esc(cat(s.id).name)} ?</span>` : ""}`; tl = tileRaw("#8E8E93", "question"); }
       else if (k === "hors") { tag = `<span class="tag">Ne compte pas</span>`; tl = tileRaw("#C7C7CC", "minus"); }
-      else { tag = `<span class="tag">${esc(cat(k).name)}${t.source === "manuel" ? ", ajoutée à la main" : t.source === "marque" ? ", cochée payée" : t.source === "applepay" ? ", Apple Pay" : ""}${t.orig ? ", modifiée" : ""}</span>`; tl = tile(cat(k)); }
+      else { tag = `<span class="tag">${esc(cat(k).name)}${t.cash ? ", en liquide" : t.source === "manuel" ? ", ajoutée à la main" : t.source === "marque" ? ", cochée payée" : t.source === "applepay" ? ", Apple Pay" : ""}${t.orig ? ", modifiée" : ""}</span>`; tl = tile(cat(k)); }
       block += `<button class="row" data-act="openTx" data-id="${esc(t.id)}">${tl}<span class="name">${esc(t.label || catName(k))}</span><span class="amt ${k === "hors" ? "muted" : t.amount > 0 ? "in" : ""}">${t.amount > 0 ? "+" : "−"}${eur(Math.abs(t.amount))}</span><span class="sub">${tag}${t.note ? `<br><span class="note">${esc(t.note)}</span>` : ""}</span></button>`;
     }
     flush();
@@ -1807,9 +1837,33 @@ details.tri-more > .picks2 { margin-top: 8px; }
 
   // Versements vers le compte d'épargne Revolut depuis le début de la file (ils remplissent les projets tout seuls)
   const isSavingsTx = (t) => /compte d.?[ée]pargne|coffre/i.test(t.label || "");
+  // Pas de virement à faire : chaque mois terminé et importé, ce qui n'a pas été dépensé (rentrées − sorties) va au matelas.
+  // Un virement vers le compte d'épargne ne change rien (ce n'est ni une rentrée ni une dépense) : rien n'est compté deux fois.
+  // Un mois est terminé quand le relevé va jusqu'à son dernier jour, ou qu'un relevé importé après la fin du mois
+  // s'arrête à moins de 3 jours de la fin (pas d'achat les derniers jours)
+  function monthDone(ym) {
+    const cov = coverage(), last = `${ym}-${pad(daysIn(ym))}`;
+    const li = state.settings.lastImportAt ? isoOf(new Date(state.settings.lastImportAt)) : null;
+    return !!cov && (cov >= last || (!!li && li > last && cov >= `${ym}-${pad(daysIn(ym) - 3)}`));
+  }
   function savingsFlow() {
-    const since = state.settings.queueStart || "9999";
-    return round2(state.tx.filter((t) => isSavingsTx(t) && t.date >= since).reduce((a, t) => a - t.amount, 0));
+    const start = state.settings.queueStart;
+    if (!start) return 0;
+    let ym = ymOf(start), total = 0;
+    while (ym < ymNow()) {
+      if (!monthDone(ym)) break;
+      total += computeMonth(ym, { raw: true }).end;
+      ym = ymShift(ym, 1);
+    }
+    return round2(total);
+  }
+  // Le mois qui attend encore son relevé complet pour remplir le matelas
+  function savingsPending() {
+    const start = state.settings.queueStart;
+    if (!start) return null;
+    let ym = ymOf(start);
+    while (ym < ymNow()) { if (!monthDone(ym)) return ym; ym = ymShift(ym, 1); }
+    return null;
   }
   // Chaque projet se remplit dans l'ordre ; l'épargne du mois va au premier qui n'est pas plein
   function queueState() {
@@ -1842,7 +1896,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const first = qs.find((x) => x.rest > 0);
     return `<section class="section"><div class="sh"><h2>Matelas et projets</h2><span>${t > 0 ? `${eur0(t)} par mois` : "rien de prévu"}</span></div>
       <div class="rows"><div class="money-row"><label for="goal">Chaque mois, quoi qu'il arrive<small>Mis de côté avant de calculer ce que tu peux dépenser</small></label><div class="money-in"><input id="goal" inputmode="decimal" value="${esc(amountText(state.settings.goal))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
-      ${qs.length ? `<div class="rows">${qRows}</div><p class="hint">${state.settings.goal > 0 ? `Tes ${eur0(state.settings.goal)} par mois remplissent ces projets dans l'ordre${first ? `, en commençant par ${esc(first.g.name.toLowerCase())}` : ""}.` : "Indique combien tu mets de côté chaque mois : les projets se remplissent dans l'ordre."} Les virements vers ton compte d'épargne Revolut sont comptés tout seuls à l'import du relevé.</p>` : ""}
+      ${qs.length ? `<div class="rows">${qRows}</div><p class="hint">${state.settings.goal > 0 ? `Tes ${eur0(state.settings.goal)} par mois remplissent ces projets dans l'ordre${first ? `, en commençant par ${esc(first.g.name.toLowerCase())}` : ""}.` : "Indique combien tu mets de côté chaque mois : les projets se remplissent dans l'ordre."} Rien à virer : à la fin de chaque mois, ce que tu n'as pas dépensé remplit le matelas, dès que le relevé du mois est importé.${savingsPending() ? ` En attente : le relevé complet de ${monthName(savingsPending())}.` : ""}</p>` : ""}
       ${dRows ? `<div class="rows">${dRows}</div>` : ""}
       <div class="rows"><button class="row" data-act="editGoal"><span class="name" style="color:var(--accent)">Ajouter un projet d'épargne</span>${ICON.chev}<span class="sub">Matelas de sécurité, apport, PC, voyage</span></button></div>
       ${t > 0 ? `<p class="hint" style="color:${rv.libre >= 0 ? "var(--good)" : "var(--bad)"}">${rv.libre >= 0 ? `Ce mois-ci, tes ${eur0(t)} d'épargne tiennent : il reste ${eur0(rv.libre)} de libre en plus de tes budgets.` : `Ce mois-ci, il manque ${eur0(-rv.libre)} pour tenir à la fois tes budgets et tes ${eur0(t)} d'épargne.`}</p>` : ""}</section>`;
@@ -2039,9 +2093,23 @@ details.tri-more > .picks2 { margin-top: 8px; }
   }
 
   // Une catégorie du quotidien : dépensé sur prévu, barre verte, orange ou rouge
-  function envRow(l, m, past) {
+  // Fin de mois probable d'une catégorie : ta moyenne par jour des derniers mois complets, pas une règle de trois
+  // sur les premiers jours. Juste après la paie et le week-end, ça part plus vite : la moyenne le lisse.
+  function paceOf(m, l) {
+    if (m.mode !== "current" || !(l.actual > 0)) return null;
+    const day = new Date().getDate(), dim = daysIn(m.ym);
+    const hist = completeMonths();
+    let per = null;
+    if (hist.length) {
+      const tot = hist.reduce((a, ym) => { const x = computeMonth(ym, { raw: true }).lines.find((q) => q.c.id === l.c.id); return a + (x ? Math.max(0, x.actual) : 0); }, 0);
+      per = tot / hist.reduce((a, ym) => a + daysIn(ym), 0);
+    } else if (day >= 10) per = l.actual / day;
+    return per === null ? null : round2(l.actual + per * (dim - day));
+  }
+  function envRow(lIn, m, past) {
+    const l = { ...lIn, actual: Math.max(0, lIn.actual) };
     const c = l.c, b = l.plan, over = b > 0 && l.actual > b;
-    const pc = past ? null : pace(m, l);
+    const pc = past ? null : paceOf(m, l);
     const fast = !over && b > 0 && pc && pc > b * 1.05;
     const near = !over && b > 0 && (fast || l.actual >= b * (state.settings.alertPct || 0.8));
     const w = b > 0 ? Math.min(100, (l.actual / b) * 100) : 0;
@@ -2073,7 +2141,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
         ${canMark ? `<button class="btn primary" data-act="markPaid" data-id="${esc(c.id)}">Je l'ai payée</button>` : ""}${marked ? `<button class="btn secondary" data-act="unmarkPaid" data-id="${esc(c.id)}">Remettre à payer</button><p class="hint">Cochée payée à la main. Le relevé la remplacera par le vrai prélèvement.</p>` : ""}`;
     }
     html += `<section class="panel">${top}</section>`;
-    html += `<section class="section"><div class="sh"><h2>Opérations</h2><span>${ops.length}</span></div>${ops.length ? `<div class="rows">${ops.map((t) => `<button class="row" data-act="openTx" data-id="${esc(t.id)}"><span class="name">${esc(t.label || c.name)}</span><span class="amt ${t.amount > 0 ? "in" : ""}">${t.amount > 0 ? "+" : "−"}${eur(Math.abs(t.amount))}</span><span class="sub">${dayLabel(t.date)}${t.source === "manuel" ? ", ajoutée à la main" : t.source === "marque" ? ", cochée payée" : ""}</span></button>`).join("")}</div>` : `<p class="hint">Rien ici en ${monthName(ym)}.</p>`}</section>`;
+    html += `<section class="section"><div class="sh"><h2>Opérations</h2><span>${ops.length}</span></div>${ops.length ? `<div class="rows">${ops.map((t) => `<button class="row" data-act="openTx" data-id="${esc(t.id)}"><span class="name">${esc(t.label || c.name)}</span><span class="amt ${t.amount > 0 ? "in" : ""}">${t.amount > 0 ? "+" : "−"}${eur(Math.abs(t.amount))}</span><span class="sub">${dayLabel(t.date)}${t.cash ? ", en liquide" : t.source === "manuel" ? ", ajoutée à la main" : t.source === "marque" ? ", cochée payée" : ""}</span></button>`).join("")}</div>` : `<p class="hint">Rien ici en ${monthName(ym)}.</p>`}</section>`;
     html += `<section class="section"><div class="sh"><h2>Réglages de la catégorie</h2></div><div class="panel">
       <div class="field"><label for="n-${esc(c.id)}">Nom</label><input type="text" id="n-${esc(c.id)}" data-edit="name" data-id="${esc(c.id)}" value="${esc(c.name)}"></div>
       <div class="field"><label for="b-${esc(c.id)}">${c.kind === "revenu" ? "Montant attendu par mois" : c.kind === "fixe" ? "Montant par mois" : "Budget par mois"}</label>${moneyInput("b-" + esc(c.id), c.budget, "Montant", `data-edit="budget" data-id="${esc(c.id)}"`)}</div>
@@ -2305,7 +2373,9 @@ details.tri-more > .picks2 { margin-top: 8px; }
         if (!["rentree", "depense"].includes(type)) { bad("indique rentree ou depense"); continue; }
         if (!/^\d{4}-\d{2}$/.test(ym)) { bad("mois attendu au format 2026-12"); continue; }
         if (!(v > 0) || !label) { bad("montant ou libellé manquant"); continue; }
-        const exists = state.events.some((e) => e.ym === ym && (norm(e.label) === norm(label) || (Math.abs(e.amount - v) < 0.01 && e.type === (type === "rentree" ? "in" : "out"))));
+        const same = state.events.find((e) => e.ym === ym && norm(e.label) === norm(label));
+        if (same && Math.abs(same.amount - v) >= 0.01) { items.push({ text: `${esc(same.label)}, ${monthName(ym)} : ${eur(same.amount)} → <b>${eur(v)}</b>`, run: () => { same.amount = round2(v); same.type = type === "rentree" ? "in" : "out"; } }); continue; }
+        const exists = same || state.events.some((e) => e.ym === ym && Math.abs(e.amount - v) < 0.01 && e.type === (type === "rentree" ? "in" : "out"));
         if (exists) { items.push({ text: `${esc(label)}, ${monthName(ym)} : déjà prévu`, skip: true }); continue; }
         items.push({ text: `Prévu : ${type === "rentree" ? "rentrée" : "dépense"} « ${esc(label)} », ${monthName(ym)}, <b>${type === "rentree" ? "+" : "−"}${eur(v)}</b>`, run: () => state.events.push({ id: uid(), label, type: type === "rentree" ? "in" : "out", ym, amount: round2(v), done: false }) });
       } else if (cmd === "objectif") {
@@ -2535,6 +2605,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
           else if (rule && rule.checked && v === "hors") { for (const x of state.tx) if (norm(x.label) === norm(oldLabel)) x.manualCat = "hors"; }
           else t.manualCat = v;
         }
+        const off = state.tx.find((x) => x.cashOffset === t.id); if (off) { off.amount = round2(-t.amount); off.date = t.date; }
         if (split > 0) { t.amount = round2(t.amount - sign * split); state.tx.push({ id: uid(), date: t.date, label: `${t.label} (part)`, amount: round2(sign * split), source: "manuel", parent: t.id, manualCat: val("txSplitCat") }); }
         sortTx(); save(); closeSheet(); render(); toast("Enregistré"); break;
       }
@@ -2543,8 +2614,8 @@ details.tri-more > .picks2 { margin-top: 8px; }
       case "delTx": {
         const t = state.tx.find((x) => x.id === el.dataset.id);
         if (t && t.parent) { const p = state.tx.find((x) => x.id === t.parent); if (p) p.amount = round2(p.amount + t.amount); }
-        const removed = t; state.tx = state.tx.filter((x) => x.id !== el.dataset.id); save(); closeSheet(); render();
-        toast("Opération supprimée", () => { if (removed) { state.tx.push(removed); sortTx(); save(); render(); } }); break;
+        const removed = state.tx.filter((x) => x.id === el.dataset.id || x.cashOffset === el.dataset.id); state.tx = state.tx.filter((x) => !removed.includes(x)); save(); closeSheet(); render();
+        toast("Opération supprimée", () => { if (removed.length) { state.tx.push(...removed); sortTx(); save(); render(); } }); break;
       }
       case "buyAdd": {
         const a = parseAmount(buy.amount);
@@ -2722,6 +2793,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const t = e.target;
     if (t.id === "buyYm") { buy.ym = t.value; updateBuy(); return; }
     if (t.id === "projCar") { projCar = t.value; renderProjets(); return; }
+    if (t.id === "addCash") { haptic(); updateAdd(); return; }
     if (t.id === "addDateIn") { if (t.value && t.value <= todayISO()) { padDate = t.value === todayISO() ? null : t.value; setWhen(); updateAdd(); } return; }
     if (t.id === "hapOn") { state.settings.haptics = t.checked; save(); haptic(); return; }
     if (t.id === "estOn") { state.settings.estimate = t.checked; save(); toast(t.checked ? "Estimation activée" : "Estimation désactivée"); return; }
@@ -2784,7 +2856,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
   const received = receiveFromHash();
   render();
   if (received) render();
-  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, dueReminders, reconcilePaid, reste, famOf, queueState, spentToday, regretLine, carCalc, carOptions, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
+  window.__finDeMois = { mergeTwins, savingsFlow, savingsPending, paceOf, get bsBlocked() { return budgetSuggestions.blocked; }, dueReminders, reconcilePaid, reste, famOf, queueState, spentToday, regretLine, carCalc, carOptions, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
 })();
 
 </script>
