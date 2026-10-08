@@ -135,6 +135,12 @@ svg { flex: none; }
 .hero[data-mood="tight"] .dot { background: var(--orange); }
 .hero[data-mood="red"] .dot { background: var(--red); }
 .hero[data-mood="red"] .big { color: var(--bad); }
+.today { display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: var(--muted); }
+.today b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.today i { display: block; height: 4px; border-radius: 2px; background: var(--fill-2); overflow: hidden; }
+.today i b { display: block; height: 100%; background: var(--accent); border-radius: 2px; transition: width .5s var(--ios); }
+.today.over i b { background: var(--red); }
+.today.over span { color: var(--bad); }
 .month { position: relative; height: 8px; border-radius: 4px; background: var(--fill-2); }
 .month i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--green); transition: width .6s var(--ios); }
 .hero[data-mood="tight"] .month i { background: var(--orange); }
@@ -155,6 +161,7 @@ svg { flex: none; }
 .verdict .v1 { font-size: 17px; font-weight: 600; }
 .verdict .v1 b { font-family: var(--round); font-size: 20px; font-weight: 700; }
 .verdict .v2 { font-size: 15px; color: var(--muted); }
+.verdict .v3 { font-size: 15px; font-weight: 600; color: var(--warn); margin-top: 2px; }
 .verdict .ok { color: var(--good); }
 .verdict .ko { color: var(--bad); }
 .verdict .mid { color: var(--warn); }
@@ -227,6 +234,11 @@ button.row:active { background: var(--press); transition: none; }
 .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--fill-2); overflow: hidden; position: relative; margin-block: 4px 2px; }
 .bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; transition: width .5s var(--ios); }
 .bar i.near { background: var(--orange); }
+.bar i.done { background: var(--green); }
+.row .sub b { color: var(--ink); font-weight: 600; }
+.row .sub b.pos { color: var(--good); }
+.row .sub b.neg { color: var(--bad); }
+.money-row input[type="month"] { min-height: 40px; padding: 8px 10px; font-size: 15px; }
 .bar i.over { background: var(--red); }
 .bar u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .3; text-decoration: none; }
 .tag { font-size: 15px; color: var(--muted); }
@@ -449,6 +461,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   *, *::before, *::after { animation: none !important; transition: none !important; }
   ::view-transition-old(page), ::view-transition-new(page) { animation: none !important; }
 }
+.carlines { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+.row.car .sub, .row.goal .sub { grid-column: 1 / -1; }
 
 </style>
 
@@ -589,6 +603,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     if (tx.manualCat !== undefined && tx.manualCat !== null && (tx.manualCat === "hors" || cat(tx.manualCat))) return tx.manualCat;
     const r = ruleMatch(tx.label);
     if (r) return r;
+    if (/compte d.?[ée]pargne|coffre/i.test(tx.label || "")) return "hors";
     if (tx.amount > 0) return "hors";
     return null;
   }
@@ -764,7 +779,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     return { need: round2(rest / left), left, rest };
   }
   function savingTarget() {
-    return round2((state.settings.goal || 0) + state.goals.reduce((a, g) => a + goalNeed(g).need, 0));
+    return round2((state.settings.goal || 0) + state.goals.filter((g) => !g.queue).reduce((a, g) => a + goalNeed(g).need, 0));
   }
   function daysLeftFrom(ym, iso) {
     const dim = daysIn(ym);
@@ -809,7 +824,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     if (v && !v.active && v.budget > 0) opts.push({ id: "budget", label: `Voiture du budget, ${eur0(v.budget)} par mois`, monthly: v.budget });
     for (const c of state.cars) {
       if (!(c.rent > 0)) continue;
-      const monthly = v && v.active ? round2(c.rent - v.budget) : c.rent;
+      const monthly = round2((v && v.active ? c.rent - v.budget : c.rent) + carExtra(c));
       opts.push({ id: "car:" + c.id, label: `${c.name}, ${eur0(c.rent)} par mois`, monthly });
     }
     return opts;
@@ -1079,8 +1094,10 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         <span class="big" id="freeNum">${eur0(shownFree ?? f.total)}</span>
         <span class="per"><i class="dot" aria-hidden="true"></i><span><b>${md.label}.</b> ${f.total > 0 ? `${eur(per)} par jour, ${dl === 1 ? "dernier jour du mois" : `${dl} jours restants`}` : f.target > 0 ? `ton épargne de ${eur0(f.target)} est déjà entamée` : "plus de marge ce mois-ci"}</span></span>
       </button>
+      ${dayLine(f, dl)}
       <div class="month" aria-hidden="true"><i style="width:${((day - 1) / dim) * 100}%"></i>${ticks}</div>
       <button class="hero-next" data-act="bills"><span>${next ? `Prochaine facture : <b>${esc(next.c.name)}</b>, vers le ${next.day}, ${eur0(next.amount)}` : rest > 0 ? `Encore <b>${eur0(rest)}</b> de factures ce mois-ci` : "Toutes les factures du mois sont passées"}</span>${ICON.chev}</button>
+      ${goalLine()}
     </section>`;
     html += paydayAlert();
     html += renderPad();
@@ -1115,6 +1132,25 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     const when = p.days === 1 ? "aujourd'hui" : `en ${p.days} jours`;
     const after = p.rest > 0 ? `Reste ${eur0(p.rest)} jusqu'à la prochaine paie (${p.toNext} jours), soit ${eur0(p.rest / p.weeks)} par semaine.` : `Budget du mois déjà dépassé de ${eur0(-p.rest)}, ${p.toNext} jours avant la prochaine paie.`;
     return `<div class="callout ${cls}" role="status" style="cursor:default"><span><b>Paie reçue le ${Number(p.pay.date.slice(8))} : ${eur0(p.spent)} de sorties ${when}</b>, soit ${Math.round(p.share * 100)} % de ton budget sorties du mois (${eur0(p.budget)}). ${after}</span></div>`;
+  }
+
+  // Ce qui est parti aujourd'hui (pavé, Apple Pay, relevé) face à ce qu'il y avait pour la journée
+  function spentToday() {
+    const d = todayISO();
+    return round2(state.tx.filter((t) => t.date === d && t.amount < 0 && t.source !== "sim").filter((t) => { const k = classify(t); return k !== "hors" && !(cat(k) && cat(k).kind === "fixe"); }).reduce((a, t) => a - t.amount, 0));
+  }
+  function goalLine() {
+    const x = queueState().find((q) => q.rest > 0);
+    if (!x) return "";
+    return `<button class="hero-next" data-act="go" data-v="projets"><span><b>${esc(x.g.name)}</b> : ${eur0(x.have)} sur ${eur0(x.g.target)}${x.eta ? `, rempli vers ${monthName(x.eta)}` : ""}</span>${ICON.chev}</button>`;
+  }
+  function dayLine(f, dl) {
+    const sp = spentToday();
+    const allow = round2((f.total + sp) / Math.max(1, dl));
+    if (!(allow > 0) && !sp) return "";
+    const pct = allow > 0 ? Math.min(100, (sp / allow) * 100) : 100;
+    const over = sp > allow;
+    return `<div class="today${over ? " over" : ""}"><span>Aujourd'hui : <b>${eur0(sp)}</b> sur ${eur0(allow)}${over ? `, ${eur0(sp - allow)} de plus que ta part du jour` : sp ? `, reste ${eur0(allow - sp)}` : ""}</span><i aria-hidden="true"><b style="width:${pct}%"></b></i></div>`;
   }
 
   function tweenFree(to) {
@@ -1186,7 +1222,23 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     else if (f.target > 0 && f.margin < 0) { cls = "ko"; v1 = `Il te resterait <b>${eur0(f.total)}</b>`; v2 = `Ça entame ton épargne de ${eur(Math.min(a, -f.margin))}. Fin du mois : ${eur0(m.end)}.`; }
     else if (c && c.id !== "sorties" && a <= room) { cls = "ok"; v1 = `Prévu dans ton budget ${esc(c.name)}`; v2 = `Il y restera ${eur(room - a)}. Tu peux toujours dépenser ${eur0(f.total)}, soit ${eur(f.total / dl)} par jour.`; }
     else { cls = f.total / dl < before.total / dl * 0.5 ? "mid" : "ok"; v1 = `Il te resterait <b>${eur0(f.total)}</b>`; v2 = `soit ${eur(f.total / dl)} par jour au lieu de ${eur(before.total / dl)}.${f.target > 0 ? " Épargne intacte." : ""}`; }
-    vEl.innerHTML = `<p class="v1 ${cls}">${v1}</p><p class="v2">${v2}</p>`;
+    vEl.innerHTML = `<p class="v1 ${cls}">${v1}</p><p class="v2">${v2}</p>${regretLine(a, catId)}`;
+  }
+
+  // Livraisons et fins de soirée : ce que ça fait déjà ce mois-ci, sans commentaire
+  function regretLine(a, catId) {
+    const ym = ymNow(), mtx = state.tx.filter((t) => ymOf(t.date) === ym && t.amount < 0);
+    if (catId === "livraisons") {
+      const lt = mtx.filter((t) => classify(t) === "livraisons");
+      const n = lt.length + 1, tot = round2(lt.reduce((x, t) => x - t.amount, 0) + a);
+      return `<p class="v3">${n === 1 ? "1re" : `${n}e`} livraison ce mois-ci : ${eur0(tot)} au total.</p>`;
+    }
+    const h = new Date().getHours();
+    if (h >= 22 || h < 6) {
+      const late = round2(mtx.filter((t) => { const tm = txTime(t); if (!tm) return false; const hh = Number(tm.slice(0, 2)); const k = classify(t); return (hh >= 22 || hh < 6) && k !== "hors" && !(cat(k) && cat(k).kind === "fixe") && k !== "nourriture" && k !== "essence"; }).reduce((x, t) => x - t.amount, 0));
+      return `<p class="v3">Après 22 h ce mois-ci : ${eur0(late + a)} avec celle-ci.</p>`;
+    }
+    return "";
   }
 
   function padKey(k) {
@@ -1205,7 +1257,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     const a = parseAmount(typed || "0");
     if (!(a > 0)) { toast("Tape d'abord un montant"); return; }
     const catId = padCat === "__autre" ? null : padCat;
-    const tx = { id: uid(), date: todayISO(), label: catId ? cat(catId).name : "Dépense", amount: -round2(a), source: "manuel", manualCat: catId || null };
+    const now = new Date();
+    const tx = { id: uid(), date: todayISO(), time: `${pad(now.getHours())}:${pad(now.getMinutes())}`, label: catId ? cat(catId).name : "Dépense", amount: -round2(a), source: "manuel", manualCat: catId || null };
     state.tx.push(tx); sortTx();
     state.settings.lastPadCat = padCat;
     save(); typed = ""; render(); haptic();
@@ -1474,8 +1527,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   function renderProjets() {
     const m = computeMonth(ymNow());
     let html = head("Projets", "Ce que tes décisions changent sur les prochains mois");
-    html += renderBuy();
     html += renderEpargne(m);
+    html += renderBuy();
     html += renderVoiture(m);
     html += renderProchains();
     html += renderPrevu();
@@ -1513,41 +1566,97 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       <button class="btn secondary" data-act="buyAdd" style="margin-top:10px">L'ajouter à mes prévisions</button>`;
   }
 
+  // Versements vers le compte d'épargne Revolut depuis le début de la file (ils remplissent les projets tout seuls)
+  const isSavingsTx = (t) => /compte d.?[ée]pargne|coffre/i.test(t.label || "");
+  function savingsFlow() {
+    const since = state.settings.queueStart || "9999";
+    return round2(state.tx.filter((t) => isSavingsTx(t) && t.date >= since).reduce((a, t) => a - t.amount, 0));
+  }
+  // Chaque projet se remplit dans l'ordre ; l'épargne du mois va au premier qui n'est pas plein
+  function queueState() {
+    const q = state.goals.filter((g) => g.queue);
+    let pool = round2(q.reduce((a, g) => a + (g.saved || 0), 0) + Math.max(0, savingsFlow()));
+    const monthly = state.settings.goal || 0;
+    let cumNeed = 0;
+    return q.map((g) => {
+      const have = round2(Math.min(g.target, Math.max(0, pool)));
+      pool = round2(pool - have);
+      const rest = round2(g.target - have);
+      cumNeed = round2(cumNeed + rest);
+      const months = rest <= 0 ? 0 : monthly > 0 ? Math.ceil(cumNeed / monthly) : null;
+      return { g, have, rest, months, eta: months === null ? null : ymShift(ymNow(), months), pct: g.target > 0 ? Math.min(100, (have / g.target) * 100) : 0 };
+    });
+  }
   function renderEpargne(m) {
     const t = savingTarget();
-    const goals = state.goals.map((g) => {
-      const n = goalNeed(g);
-      const pct = g.target > 0 ? Math.min(100, ((g.saved || 0) / g.target) * 100) : 0;
-      return `<button class="row" data-act="editGoal" data-id="${esc(g.id)}"><span class="name">${esc(g.name)}</span><span class="amt">${eur0(g.saved || 0)} <span class="tag">/ ${eur0(g.target)}</span></span>
-        <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="sub">${n.done ? "Atteint" : n.late ? `Date passée, il manque ${eur0(n.rest)}` : `${eur0(n.need)} par mois jusqu'en ${monthName(ymOf(g.date))}`}</span></button>`;
+    const qs = queueState();
+    const dated = state.goals.filter((g) => !g.queue);
+    const qRows = qs.map((x, i) => `<button class="row goal" data-act="editGoal" data-id="${esc(x.g.id)}"><span class="name">${esc(x.g.name)}</span><span class="amt">${eur0(x.have)}<span class="tag"> sur ${eur0(x.g.target)}</span></span>
+        <div class="bar" aria-hidden="true"><i class="${x.rest <= 0 ? "done" : ""}" style="width:${x.pct}%"></i></div>
+        <span class="sub">${x.rest <= 0 ? "Rempli" : x.eta ? `${i === 0 || qs[i - 1].rest <= 0 ? "En cours" : `Ensuite`}, rempli vers ${monthName(x.eta)}` : "Indique ton épargne mensuelle pour avoir une date"}</span></button>`).join("");
+    const dRows = dated.map((g) => {
+      const n = goalNeed(g), pct = g.target > 0 ? Math.min(100, ((g.saved || 0) / g.target) * 100) : 0;
+      return `<button class="row" data-act="editGoal" data-id="${esc(g.id)}"><span class="name">${esc(g.name)}</span><span class="amt">${eur0(g.saved || 0)}<span class="tag"> sur ${eur0(g.target)}</span></span>
+        <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="sub">${n.done ? "Atteint" : n.late ? `Date passée, il manque ${eur0(n.rest)}` : `${eur0(n.need)} par mois en plus, jusqu'en ${monthName(ymOf(g.date))}`}</span></button>`;
     }).join("");
     const ok = m.end >= t;
-    return `<section class="section"><div class="sh"><h2>Épargne</h2><span>${t > 0 ? `${eur0(t)} par mois` : "aucun objectif"}</span></div>
-      <div class="rows"><div class="money-row"><label for="goal">Chaque mois, quoi qu'il arrive<small>Ce montant est mis de côté avant de calculer ce que tu peux dépenser</small></label><div class="money-in"><input id="goal" inputmode="decimal" value="${esc(amountText(state.settings.goal))}" placeholder="0"><span aria-hidden="true">€</span></div></div>${goals}
-        <button class="row" data-act="editGoal"><span class="name" style="color:var(--accent)">Ajouter un projet d'épargne</span>${ICON.chev}<span class="sub">Un voyage, un apport, un matelas de sécurité : montant et date</span></button></div>
+    const first = qs.find((x) => x.rest > 0);
+    return `<section class="section"><div class="sh"><h2>Épargne</h2><span>${t > 0 ? `${eur0(t)} par mois` : "rien de prévu"}</span></div>
+      <div class="rows"><div class="money-row"><label for="goal">Chaque mois, quoi qu'il arrive<small>Mis de côté avant de calculer ce que tu peux dépenser</small></label><div class="money-in"><input id="goal" inputmode="decimal" value="${esc(amountText(state.settings.goal))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
+      ${qs.length ? `<div class="rows">${qRows}</div><p class="hint">${state.settings.goal > 0 ? `Tes ${eur0(state.settings.goal)} par mois remplissent ces projets dans l'ordre${first ? `, en commençant par ${esc(first.g.name.toLowerCase())}` : ""}.` : "Indique combien tu mets de côté chaque mois : les projets se remplissent dans l'ordre."} Les virements vers ton compte d'épargne Revolut sont comptés tout seuls à l'import du relevé.</p>` : ""}
+      ${dRows ? `<div class="rows">${dRows}</div>` : ""}
+      <div class="rows"><button class="row" data-act="editGoal"><span class="name" style="color:var(--accent)">Ajouter un projet d'épargne</span>${ICON.chev}<span class="sub">Matelas de sécurité, apport, PC, voyage</span></button></div>
       ${t > 0 ? `<p class="hint" style="color:${ok ? "var(--good)" : "var(--bad)"}">${ok ? `Ce mois-ci, c'est tenable : fin du mois prévue à ${eur0(m.end)}.` : `Ce mois-ci, il manque ${eur0(t - m.end)} pour tout mettre de côté.`}</p>` : ""}</section>`;
   }
 
-  function renderVoiture(m) {
+  // Coût réel d'une offre en plus du loyer : assurance, et différence d'essence avec le budget actuel
+  function carExtra(c) {
+    const ess = cat("essence");
+    const fuel = c && c.fuel !== undefined && c.fuel !== null && c.fuel !== "" && ess ? c.fuel - ess.budget : 0;
+    return round2(((c && c.ins) || 0) + fuel);
+  }
+  function carCalc(c, m) {
     const v = cat("voiture");
+    const monthly = round2(c.rent + carExtra(c));
+    const sale = state.settings.carSale || 0;
+    const cash = round2(sale - (c.deposit || 0));
+    const total = c.months > 0 ? round2((c.deposit || 0) + c.rent * c.months) : null;
+    const base = freeToSpend(m);
+    const endWith = round2(m.end - monthly + (v && v.active ? v.budget : 0));
+    const t = savingTarget();
+    return { monthly, cash, total, endWith, freeWith: round2(Math.max(0, endWith - t) + base.room), freeNow: base.total, keeps: endWith >= t };
+  }
+  function renderVoiture(m) {
     const cars = state.cars;
-    const full = cars.filter((c) => c.rent > 0 && c.months > 0);
+    const sale = state.settings.carSale || 0;
+    const from = state.settings.financeFrom || "";
+    const qs = queueState(), first = qs.find((x) => x.rest > 0);
     let inner = cars.map((c) => {
-      const ok = c.rent > 0 && c.months > 0;
-      const total = ok ? round2((c.deposit || 0) + c.rent * c.months) : null;
-      const effect = v && v.active ? round2(c.rent - v.budget) : c.rent;
-      return `<button class="row" data-act="editCar" data-id="${esc(c.id)}"><span class="name">${esc(c.name)}</span><span class="amt">${eur0(c.rent)}<span class="tag"> /mois</span></span>
-        <span class="sub">${ok ? `${eur0(total / c.months)} par mois apport compris, ${eur0(total)} au total` : "Durée manquante pour le coût total"}. Avec elle, ce mois finirait à <b>${eur0(m.end - (effect || 0))}</b>.</span></button>`;
+      const k = carCalc(c, m);
+      const parts = [`loyer ${eur0(c.rent)}`].concat(c.ins ? [`assurance ${eur0(c.ins)}`] : []).concat(c.fuel !== undefined && c.fuel !== "" && cat("essence") ? [`essence ${c.fuel - cat("essence").budget >= 0 ? "+" : "−"}${eur0(Math.abs(c.fuel - cat("essence").budget))}`] : []);
+      let mat = "";
+      if (first && k.cash > 0 && state.settings.goal > 0) {
+        const before = first.months, after = Math.max(0, Math.ceil(Math.max(0, first.rest - k.cash) / state.settings.goal));
+        mat = ` Sur ${esc(first.g.name.toLowerCase())}, rempli ${before - after > 0 ? `${before - after} mois plus tôt` : "à la même date"}.`;
+      }
+      return `<button class="row car" data-act="editCar" data-id="${esc(c.id)}"><span class="name">${esc(c.name)}</span><span class="amt">${eur0(k.monthly)}<span class="tag"> /mois</span></span>
+        <span class="sub carlines"><span>${cap(parts.join(", "))}.</span>${sale > 0 || c.deposit ? `<span>À la signature : <b class="${k.cash >= 0 ? "pos" : "neg"}">${k.cash >= 0 ? "+" : "−"}${eur0(Math.abs(k.cash))}</b> (${sale > 0 ? `vente ${eur0(sale)} − ` : ""}apport ${eur0(c.deposit || 0)}).${mat}</span>` : ""}
+        <span>Avec elle ce mois-ci : <b>${eur0(k.freeWith)}</b> à dépenser au lieu de ${eur0(k.freeNow)}${state.settings.goal > 0 ? `, ${k.keeps ? "épargne tenue" : "<b class=\"neg\">épargne pas tenue</b>"}` : ""}.</span></span></button>`;
     }).join("");
-    inner += `<button class="row" data-act="editCar"><span class="name" style="color:var(--accent)">Ajouter une offre</span>${ICON.chev}<span class="sub">Loyer, apport, durée : le vrai coût s'affiche</span></button>`;
-    return `<section class="section"><div class="sh"><h2>Voiture</h2><span>${cars.length ? `${cars.length} offre${cars.length > 1 ? "s" : ""}` : ""}</span></div><div class="rows">${inner}</div>
-      ${full.length >= 2 ? `<div class="panel"><div class="hbars">${hbars(full.map((c) => ({ k: c.name, v: ((c.deposit || 0) + c.rent * c.months) / c.months })).sort((a, b) => a.v - b.v))}</div><p class="hint">Coût moyen par mois, apport compris. Sans option d'achat ni frais de fin de contrat.</p></div>` : ""}</section>`;
+    inner += `<button class="row" data-act="editCar"><span class="name" style="color:var(--accent)">Ajouter une offre</span>${ICON.chev}<span class="sub">Loyer, assurance, apport, essence : le vrai coût par mois</span></button>`;
+    const full = cars.filter((c) => c.rent > 0);
+    return `<section class="section"><div class="sh"><h2>Voiture</h2><span>${cars.length ? `${cars.length} offre${cars.length > 1 ? "s" : ""}` : ""}</span></div>
+      <div class="rows"><div class="money-row"><label for="carSale">Vente de ta voiture actuelle<small>Ce que tu penses en tirer</small></label><div class="money-in"><input id="carSale" inputmode="decimal" value="${esc(amountText(sale))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
+        <div class="money-row"><label for="financeFrom">Financement possible à partir de<small>Fin de ta période d'essai</small></label><input type="month" id="financeFrom" class="input" value="${esc(from)}"></div></div>
+      ${from && from > ymNow() ? `<p class="hint">Pas de signature avant ${monthName(from)} : les organismes demandent la fin de la période d'essai, ou un garant.</p>` : ""}
+      <div class="rows">${inner}</div>
+      ${full.length >= 2 ? `<div class="panel"><div class="hbars">${hbars(full.map((c) => ({ k: c.name, v: carCalc(c, m).monthly })).sort((a, b) => a.v - b.v))}</div><p class="hint">Coût réel par mois : loyer, assurance et écart d'essence avec ton budget actuel.</p></div>` : ""}</section>`;
   }
 
   function renderProchains() {
     const opts = carOptions();
     const p = projection(6, carMonthlyOf(projCar));
-    return `<section class="section"><div class="sh"><h2>Les 6 prochains mois</h2><span>${eur0(p[5].cum)} de côté</span></div><div class="panel">
+    return `<section class="section"><div class="sh"><h2>6 prochains mois</h2><span>${eur0(p[5].cum)} de côté</span></div><div class="panel">
       ${opts.length ? `<div class="field"><label for="projCar">Avec une voiture</label><select id="projCar"><option value="">Sans changement</option>${opts.map((o) => `<option value="${esc(o.id)}" ${projCar === o.id ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></div>` : ""}
       ${colChart("proj", p.map((x) => ({ k: monthShort(x.ym), v: x.end })), { label: "Reste prévu sur 6 mois", defaultSel: 0 })}
       <div class="table-wrap"><table class="table"><thead><tr><th>Mois</th><th>Reste</th><th>Cumul</th></tr></thead><tbody>${p.map((x) => `<tr><td>${cap(monthShort(x.ym))}${x.ev ? ` <span class="tag">(${sgn(x.ev)} prévu)</span>` : ""}</td><td class="${x.end < 0 ? "neg" : ""}">${eur0(x.end)}</td><td>${eur0(x.cum)}</td></tr>`).join("")}</tbody></table></div>
@@ -1793,12 +1902,17 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveEvent" data-id="${esc(e.id)}">Enregistrer</button></div>`, "Prévision");
   }
   function goalSheet(id) {
-    const g = id ? state.goals.find((x) => x.id === id) : { id: "", name: "", target: 0, saved: 0, date: `${ymShift(ymNow(), 6)}-01` };
-    openSheet(`<h2>${id ? "Modifier le projet" : "Nouveau projet d'épargne"}</h2>
-      <div class="field"><label for="gName">Nom</label><input type="text" id="gName" value="${esc(g.name)}" placeholder="Ex. : vacances d'été"></div>
+    const g = id ? state.goals.find((x) => x.id === id) : { id: "", name: "", target: 0, saved: 0, date: "", queue: true };
+    const q = queueState().find((x) => x.g.id === g.id);
+    const qi = state.goals.filter((x) => x.queue).findIndex((x) => x.id === g.id);
+    openSheet(`<h2>${id ? esc(g.name) : "Nouveau projet d'épargne"}</h2>
+      ${q ? `<p class="meta">${eur0(q.have)} sur ${eur0(g.target)}${q.rest > 0 && q.eta ? `, rempli vers ${monthName(q.eta)}` : q.rest <= 0 ? ", rempli" : ""}</p>` : ""}
+      ${id ? `<div class="panel"><div class="field"><label for="gAdd">Ajouter de l'argent mis de côté</label><div class="grid2"><div class="money-in"><input id="gAdd" inputmode="decimal" placeholder="0" aria-label="Montant ajouté"><span aria-hidden="true">€</span></div><button class="btn primary" data-act="goalAdd" data-id="${esc(g.id)}">Ajouter</button></div></div><p class="hint">Une prime, la vente d'un objet, un virement fait ailleurs.</p></div>` : ""}
+      <div class="field"><label for="gName">Nom</label><input type="text" id="gName" value="${esc(g.name)}" placeholder="Ex. : matelas de sécurité"></div>
       <div class="grid2"><div class="field"><label for="gTarget">Montant visé</label><div class="money-in"><input id="gTarget" inputmode="decimal" value="${esc(amountText(g.target))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
         <div class="field"><label for="gSaved">Déjà de côté</label><div class="money-in"><input id="gSaved" inputmode="decimal" value="${esc(amountText(g.saved))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
-      <div class="field"><label for="gDate">Pour quand</label><input type="month" id="gDate" value="${esc(ymOf(g.date))}"></div><p class="err" id="gErr" hidden></p>
+      <div class="field"><label for="gDate">Date limite (facultatif)</label><input type="month" id="gDate" value="${g.date ? esc(ymOf(g.date)) : ""}"><p class="hint">Sans date, le projet attend son tour dans la file. Avec une date, l'appli met de côté ce qu'il faut chaque mois en plus.</p></div><p class="err" id="gErr" hidden></p>
+      ${id && g.queue && qi > 0 ? `<button class="btn secondary" data-act="goalFirst" data-id="${esc(g.id)}">Le remplir en premier</button>` : ""}
       ${id ? `<button class="btn danger" data-act="delGoal" data-id="${esc(g.id)}">Supprimer le projet</button>` : ""}
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveGoal" data-id="${esc(g.id)}">Enregistrer</button></div>`, "Projet d'épargne");
   }
@@ -1808,6 +1922,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       <div class="field"><label for="cName">Voiture</label><input type="text" id="cName" value="${esc(c.name)}" placeholder="Ex. : citadine hybride"></div>
       <div class="grid2"><div class="field"><label for="cRent">Loyer par mois</label><div class="money-in"><input id="cRent" inputmode="decimal" value="${esc(amountText(c.rent))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
         <div class="field"><label for="cDep">Apport</label><div class="money-in"><input id="cDep" inputmode="decimal" value="${esc(amountText(c.deposit))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
+      <div class="grid2"><div class="field"><label for="cIns">Assurance par mois</label><div class="money-in"><input id="cIns" inputmode="decimal" value="${esc(amountText(c.ins || 0))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
+        <div class="field"><label for="cFuel">Essence par mois avec elle</label><div class="money-in"><input id="cFuel" inputmode="decimal" value="${c.fuel !== undefined && c.fuel !== "" ? esc(amountText(c.fuel)) : ""}" placeholder="${cat("essence") ? esc(amountText(cat("essence").budget)) : "0"}"><span aria-hidden="true">€</span></div></div></div>
       <div class="grid2"><div class="field"><label for="cMonths">Durée (mois)</label><input type="text" class="input" id="cMonths" inputmode="numeric" value="${c.months || ""}" placeholder="Ex. : 36"></div>
         <div class="field"><label for="cKm">Km par an</label><input type="text" class="input" id="cKm" inputmode="numeric" value="${c.km || ""}" placeholder="Facultatif"></div></div><p class="err" id="cErr" hidden></p>
       ${id ? `<button class="btn secondary" data-act="useCar" data-id="${esc(c.id)}">En faire la voiture de mon budget</button><button class="btn danger" data-act="delCar" data-id="${esc(c.id)}">Supprimer l'offre</button>` : ""}
@@ -1856,6 +1972,19 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         const exists = state.events.some((e) => norm(e.label) === norm(label) && e.ym === ym);
         if (exists) { items.push({ text: `${esc(label)}, ${monthName(ym)} : déjà prévu`, skip: true }); continue; }
         items.push({ text: `Prévu : ${type === "rentree" ? "rentrée" : "dépense"} « ${esc(label)} », ${monthName(ym)}, <b>${type === "rentree" ? "+" : "−"}${eur(v)}</b>`, run: () => state.events.push({ id: uid(), label, type: type === "rentree" ? "in" : "out", ym, amount: round2(v), done: false }) });
+      } else if (cmd === "objectif") {
+        const name = (tk[1] || "").trim(), v = parseAmount(tk[2] || ""), have = tk[3] ? parseAmount(tk[3]) : 0;
+        if (!name || !(v > 0) || !isFinite(have)) { bad("forme attendue : objectif \"Nom\" montant [déjà de côté]"); continue; }
+        if (state.goals.some((g) => norm(g.name) === norm(name))) { items.push({ text: `Projet « ${esc(name)} » : existe déjà`, skip: true }); continue; }
+        items.push({ text: `Projet d'épargne <b>${esc(name)}</b> : ${eur0(v)}${have ? `, ${eur0(have)} déjà de côté` : ""}, rempli dans l'ordre`, run: () => { if (!state.settings.queueStart) state.settings.queueStart = todayISO(); state.goals.push({ id: uid(), name, target: round2(v), saved: round2(have || 0), date: "", queue: true }); } });
+      } else if (cmd === "vente-voiture") {
+        const v = parseAmount(tk[1] || "");
+        if (!(v >= 0)) { bad("montant illisible"); continue; }
+        items.push({ text: `Vente de ta voiture actuelle : <b>${eur0(v)}</b>`, run: () => { state.settings.carSale = round2(v); } });
+      } else if (cmd === "financement") {
+        const ym = tk[1] || "";
+        if (!/^\d{4}-\d{2}$/.test(ym)) { bad("mois attendu au format 2026-12"); continue; }
+        items.push({ text: `Financement possible à partir de <b>${monthName(ym)}</b>`, run: () => { state.settings.financeFrom = ym; } });
       } else if (cmd === "regle") {
         const kw = (tk[1] || "").trim(), c = catByRef(tk[2], pending);
         if (!kw) { bad("libellé manquant"); continue; }
@@ -1964,6 +2093,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     for (const a of tabs.querySelectorAll("a")) { if (a.dataset.tab === tab && ["aujourdhui", "point", "projets", "operations"].includes(view)) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); }
     updateBadge();
     ({ aujourdhui: renderAujourdhui, point: renderPoint, projets: renderProjets, operations: renderOperations, reglages: renderReglages, budget: renderBudget, iphone: renderIphone, sauvegarde: renderSauvegarde }[view])();
+    const nv = document.getElementById("nav"); if (nv) nv.classList.toggle("scrolled", window.scrollY > 38);
   }
   const val = (id) => { const e = document.getElementById(id); return e ? e.value : ""; };
   const showErr = (id, msg) => { const e = document.getElementById(id); if (e) { e.textContent = msg; e.hidden = false; } };
@@ -2052,10 +2182,22 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         if (!name) { showErr("gErr", "Donne un nom au projet."); break; }
         if (!(target > 0)) { showErr("gErr", "Indique le montant visé, par exemple 1500."); break; }
         if (!isFinite(saved) || saved < 0) { showErr("gErr", "Le montant déjà de côté est illisible."); break; }
-        if (!/^\d{4}-\d{2}$/.test(ym)) { showErr("gErr", "Choisis le mois visé."); break; }
-        const data = { name, target: round2(target), saved: round2(saved), date: `${ym}-01` };
+        if (ym && !/^\d{4}-\d{2}$/.test(ym)) { showErr("gErr", "Choisis le mois, ou laisse vide."); break; }
+        const data = { name, target: round2(target), saved: round2(saved), date: ym ? `${ym}-01` : "", queue: !ym };
+        if (data.queue && !state.settings.queueStart) state.settings.queueStart = todayISO();
         if (el.dataset.id) Object.assign(state.goals.find((x) => x.id === el.dataset.id), data); else state.goals.push({ id: uid(), ...data });
-        save(); closeSheet(); shownFree = null; render(); toast("Projet enregistré"); break;
+        save(); closeSheet(); shownFree = null; render(); haptic(); toast("Projet enregistré"); break;
+      }
+      case "goalAdd": {
+        const g = state.goals.find((x) => x.id === el.dataset.id), a = parseAmount(val("gAdd"));
+        if (!g || !(a > 0)) { showErr("gErr", "Indique le montant ajouté, par exemple 500."); break; }
+        g.saved = round2((g.saved || 0) + a); save(); closeSheet(); render(); haptic();
+        toast(`${eur0(a)} ajoutés à ${g.name}`, () => { g.saved = round2(g.saved - a); save(); render(); toast("Ajout annulé"); }); break;
+      }
+      case "goalFirst": {
+        const g = state.goals.find((x) => x.id === el.dataset.id);
+        if (g) { state.goals = [g].concat(state.goals.filter((x) => x !== g)); save(); closeSheet(); render(); toast(`${g.name} passe en premier`); }
+        break;
       }
       case "delGoal": state.goals = state.goals.filter((x) => x.id !== el.dataset.id); save(); closeSheet(); render(); toast("Projet supprimé"); break;
       case "editCar": carSheet(el.dataset.id); break;
@@ -2064,7 +2206,10 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         if (!name) { showErr("cErr", "Donne le nom de la voiture."); break; }
         if (!(rent > 0)) { showErr("cErr", "Indique le loyer par mois, par exemple 320."); break; }
         if (!isFinite(dep) || dep < 0) { showErr("cErr", "L'apport est illisible."); break; }
-        const data = { name, rent: round2(rent), deposit: round2(dep), months: months > 0 ? months : 0, km: km > 0 ? km : 0 };
+        const ir = val("cIns").trim(), ins = ir ? parseAmount(ir) : 0, fr = val("cFuel").trim(), fuel = fr ? parseAmount(fr) : "";
+        if (!isFinite(ins) || ins < 0) { showErr("cErr", "L'assurance est illisible."); break; }
+        if (fr && (!isFinite(fuel) || fuel < 0)) { showErr("cErr", "L'essence est illisible."); break; }
+        const data = { name, rent: round2(rent), deposit: round2(dep), months: months > 0 ? months : 0, km: km > 0 ? km : 0, ins: round2(ins), fuel: fr ? round2(fuel) : "" };
         if (el.dataset.id) Object.assign(state.cars.find((x) => x.id === el.dataset.id), data); else state.cars.push({ id: uid(), ...data });
         save(); closeSheet(); render(); toast("Offre enregistrée"); break;
       }
@@ -2187,6 +2332,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     if (t.id === "hapOn") { state.settings.haptics = t.checked; save(); haptic(); return; }
     if (t.id === "estOn") { state.settings.estimate = t.checked; save(); toast(t.checked ? "Estimation activée" : "Estimation désactivée"); return; }
     if (t.id === "alertPct") { state.settings.alertPct = Number(t.value); save(); toast("Enregistré"); return; }
+    if (t.id === "carSale" && state) { const v = parseAmount(t.value || "0"); state.settings.carSale = isFinite(v) && v > 0 ? round2(v) : 0; save(); renderProjets(); toast("Enregistré"); return; }
+    if (t.id === "financeFrom" && state) { state.settings.financeFrom = t.value || ""; save(); renderProjets(); toast("Enregistré"); return; }
     if (t.id === "goal" && state) { const v = parseAmount(t.value || "0"); state.settings.goal = isFinite(v) && v > 0 ? round2(v) : 0; save(); shownFree = null; renderProjets(); toast("Épargne mensuelle enregistrée"); return; }
     const ed = t.dataset && t.dataset.edit;
     if (ed && state) {
@@ -2238,7 +2385,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   const received = receiveFromHash();
   render();
   if (received) render();
-  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
+  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, queueState, spentToday, regretLine, carCalc, carOptions, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
 })();
 
 </script>
