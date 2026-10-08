@@ -446,6 +446,7 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
       { id: "essence", name: "Essence", kind: "enveloppe", budget: 0, kw: ["Total", "Esso"], active: true },
       { id: "sorties", name: "Sorties et loisirs", kind: "enveloppe", budget: 0, kw: [], active: true },
       { id: "especes", name: "Espèces", kind: "enveloppe", budget: 0, kw: ["Retrait d'espèces"], active: true },
+      { id: "livraisons", name: "Livraisons de repas", kind: "enveloppe", budget: 0, kw: ["Uber Eats", "Deliveroo"], active: true },
     ];
   }
 
@@ -801,7 +802,7 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
       const key = `${rawDate}|${label}|${r[idx.amount]}|${idx.fee !== undefined ? r[idx.fee] : ""}`;
       if (known.has(key)) { res.dup++; continue; }
       known.add(key);
-      added.push({ id: uid(), date, label, amount: round2(amt - fee), source: "revolut", key });
+      added.push({ id: uid(), date, label, amount: round2(amt - fee), source: "revolut", key, time: (rawDate.match(/\d{2}:\d{2}/) || [])[0] || undefined });
       res.months.add(ymOf(date));
     }
     for (const t of added) {
@@ -915,6 +916,7 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
     gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>',
     del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 6H9l-6 6 6 6h12z"/><path d="M13 10l4 4M17 10l-4 4"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
     cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
     bag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>',
     trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
@@ -969,11 +971,39 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
       <span class="next">${next ? `Prochaine facture : ${esc(next.c.name)}, vers le ${next.day} (${eur0(next.amount)}). Encore ${eur0(rest)} de factures ce mois-ci.` : rest > 0 ? `Encore ${eur0(rest)} de factures ce mois-ci.` : "Toutes les factures du mois sont passées."}</span>
       <span class="how">${f.target > 0 ? `Épargne de ${eur0(f.target)} déjà mise de côté dans ce calcul. ` : ""}Voir le calcul</span>
     </button>`;
+    html += paydayAlert();
     html += renderPad();
     html += renderThisMonth(m);
     app.innerHTML = html;
     updatePad();
     tweenFree(f.total);
+  }
+
+  // Les jours qui suivent la paie : les sorties partent vite, l'appli le dit en chiffres bruts
+  const FUN_IDS = ["sorties", "especes", "livraisons"];
+  function paydayInfo() {
+    const today = todayISO();
+    const from = new Date(); from.setDate(from.getDate() - 6);
+    const fromIso = isoOf(from);
+    const pay = state.tx.filter((t) => t.amount > 0 && t.date >= fromIso && t.date <= today && cat(classify(t)) && cat(classify(t)).kind === "revenu" && t.amount >= 300).sort((a, b) => (a.date < b.date ? -1 : 1)).pop();
+    if (!pay) return null;
+    const funCats = FUN_IDS.map(cat).filter((c) => c && c.kind === "enveloppe");
+    const budget = round2(funCats.filter((c) => c.active).reduce((a, c) => a + c.budget, 0));
+    if (!(budget > 0)) return null;
+    const spent = round2(state.tx.filter((t) => t.date >= pay.date && t.date <= today && t.amount < 0 && FUN_IDS.includes(classify(t))).reduce((a, t) => a - t.amount, 0));
+    const days = Math.round((new Date(today) - new Date(pay.date)) / 864e5) + 1;
+    const pd = new Date(pay.date + "T12:00:00"); const next = new Date(pd); next.setMonth(next.getMonth() + 1);
+    if (next.getDate() !== pd.getDate()) next.setDate(0);
+    const toNext = Math.max(1, Math.round((next - new Date(today + "T12:00:00")) / 864e5));
+    return { pay, budget, spent, days, share: spent / budget, rest: round2(budget - spent), toNext, weeks: Math.max(1, toNext / 7), names: funCats.map((c) => c.name) };
+  }
+  function paydayAlert() {
+    const p = paydayInfo();
+    if (!p || p.share < 1 / 3) return "";
+    const cls = p.share >= 0.5 ? "bad" : "warn";
+    const when = p.days === 1 ? "aujourd'hui" : `en ${p.days} jours`;
+    const after = p.rest > 0 ? `Reste ${eur0(p.rest)} jusqu'à la prochaine paie (${p.toNext} jours), soit ${eur0(p.rest / p.weeks)} par semaine.` : `Budget du mois déjà dépassé de ${eur0(-p.rest)}, ${p.toNext} jours avant la prochaine paie.`;
+    return `<div class="callout ${cls}" role="status" style="cursor:default"><span><b>Paie reçue le ${Number(p.pay.date.slice(8))} : ${eur0(p.spent)} de sorties ${when}</b>, soit ${Math.round(p.share * 100)} % de ton budget sorties du mois (${eur0(p.budget)}). ${after}</span></div>`;
   }
 
   function tweenFree(to) {
@@ -1202,6 +1232,40 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
     }
     return [...g.values()].sort((a, b) => b.total - a.total);
   }
+  // Heure d'une opération : notée à l'import, sinon retrouvée dans la clé du relevé (date et heure Revolut)
+  function txTime(t) {
+    if (t.time) return t.time;
+    const m = t.key && String(t.key).match(/^\d{4}-\d{2}-\d{2}[ T](\d{2}:\d{2})/);
+    return m ? m[1] : null;
+  }
+  function nightFacts(m) {
+    const out = [];
+    const groups = new Map();
+    for (const t of m.txs) {
+      if (t.amount >= 0) continue;
+      const k = classify(t);
+      if (k === "hors" || (cat(k) && cat(k).kind !== "enveloppe")) continue;
+      if (k === "nourriture" || k === "essence") continue;
+      const tm = txTime(t);
+      if (!tm) continue;
+      const h = Number(tm.slice(0, 2));
+      if (h >= 6 && h < 22) continue;
+      let day = t.date;
+      if (h < 6) { const d = new Date(t.date + "T12:00:00"); d.setDate(d.getDate() - 1); day = isoOf(d); }
+      groups.set(day, round2((groups.get(day) || 0) - t.amount));
+    }
+    if (groups.size) {
+      const total = round2([...groups.values()].reduce((a, b) => a + b, 0));
+      const [maxDay, max] = [...groups.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (total >= 20) out.push({ ic: "moon", cls: total >= 100 ? "warn" : "", t: `Après 22 h : <b>${eur0(total)}</b> en ${groups.size} soirée${groups.size > 1 ? "s" : ""}${groups.size > 1 ? `, dont ${eur0(max)} la nuit du ${shortDate(maxDay)}` : ""}.` });
+    }
+    const liv = cat("livraisons");
+    if (liv) {
+      const lt = m.txs.filter((t) => t.amount < 0 && classify(t) === "livraisons");
+      if (lt.length) { const tot = round2(lt.reduce((a, t) => a - t.amount, 0)); out.push({ ic: "bag", cls: lt.length >= 3 || (liv.budget > 0 && tot > liv.budget) ? "warn" : "", t: `Livraisons de repas : <b>${lt.length} commande${lt.length > 1 ? "s" : ""}, ${eur0(tot)}</b>${liv.budget > 0 ? ` pour ${eur0(liv.budget)} prévus` : ""}, soit ${eur(tot / lt.length)} la commande.` }); }
+    }
+    return out;
+  }
   function facts(ym) {
     const now = ymNow();
     const m = computeMonth(ym, ym < now ? { raw: true } : {});
@@ -1227,6 +1291,7 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
         else if (pc && pc > l.plan * 1.05) out.push({ ic: "trend", cls: "warn", t: `À ce rythme, <b>${esc(l.c.name)}</b> finira à ${eur0(pc)} pour ${eur0(l.plan)} prévus.` });
       }
     }
+    out.push(...nightFacts(m));
     const top = spentByLabel(m.txs).slice(0, 3);
     if (top.length) out.push({ ic: "bag", cls: "", t: `Là où ça part le plus${ym < now ? "" : " ce mois-ci"} : ${top.map((x) => `<b>${esc(x.label)}</b> ${eur0(x.total)}${x.n > 1 ? ` (${x.n} fois)` : ""}`).join(", ")}.` });
     const small = expTx.filter((t) => -t.amount < 10 && !(cat(classify(t)) && cat(classify(t)).kind === "fixe"));
@@ -1253,7 +1318,7 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
     const choices = [ymNow()].concat(months.slice(-2).reverse());
     if (!bilanYM || !choices.includes(bilanYM)) bilanYM = ymNow();
     const fs = facts(bilanYM);
-    const ICONS = { coins: ICON.coins, cal: ICON.cal, bag: ICON.bag, alert: ICON.alert, trend: ICON.trend, repeat: ICON.repeat };
+    const ICONS = { coins: ICON.coins, cal: ICON.cal, bag: ICON.bag, alert: ICON.alert, trend: ICON.trend, repeat: ICON.repeat, moon: ICON.moon };
     return `<section class="section"><div class="sh"><h2>Le bilan</h2></div>
       ${choices.length > 1 ? `<div class="seg" role="group" aria-label="Mois">${choices.map((ym) => `<button data-act="bilan" data-v="${ym}" aria-pressed="${bilanYM === ym}">${ym === ymNow() ? "Ce mois-ci" : cap(MONTHS[Number(ym.slice(5)) - 1])}</button>`).join("")}</div>` : ""}
       <div class="facts">${fs.length ? fs.map((x) => `<div class="fact ${x.cls}"><span class="ic">${ICONS[x.ic] || ICON.cal}</span><div><p>${x.t}</p>${x.act || ""}</div></div>`).join("") : `<div class="empty"><b>Rien à dire pour l'instant.</b><p>Importe ton relevé : le bilan se remplit tout seul.</p></div>`}</div></section>`;
@@ -1415,9 +1480,10 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
     const items = [
       ["budget", "Budget et catégories", `Salaire, factures, budgets du quotidien, règles de tri`],
       ["iphone", "iPhone : Apple Pay et rappels", state.tx.some((t) => t.source === "applepay") ? `${state.tx.filter((t) => t.source === "applepay").length} paiements Apple Pay reçus` : "Enregistrer tes paiements tout seuls"],
+      ["__code", "Appliquer des réglages", "Coller un texte de réglages préparé (budgets, règles de tri, prévisions)"],
       ["sauvegarde", "Sauvegarde", state.settings.lastBackup ? `Dernière le ${new Date(state.settings.lastBackup).toLocaleDateString("fr-FR")}` : "Jamais sauvegardé"],
     ];
-    html += `<div class="rows">${items.map(([v, t, s]) => `<button class="row" data-act="go" data-v="${v}"><span class="name">${t}</span>${v === "sauvegarde" && backupLate() ? `<span class="st near">à faire</span>` : ICON.chev}<span class="sub">${esc(s)}</span></button>`).join("")}</div>`;
+    html += `<div class="rows">${items.map(([v, t, s]) => `<button class="row" ${v === "__code" ? 'data-act="codeOpen"' : `data-act="go" data-v="${v}"`}><span class="name">${t}</span>${v === "sauvegarde" && backupLate() ? `<span class="st near">à faire</span>` : ICON.chev}<span class="sub">${esc(s)}</span></button>`).join("")}</div>`;
     html += `<div class="panel"><label class="switch" for="estOn"><span>Estimer les dépenses pas encore importées<small>D'après ta moyenne par jour des mois complets</small></span><input type="checkbox" id="estOn" ${state.settings.estimate !== false ? "checked" : ""}></label>
       <label class="field" for="alertPct"><span class="flabel">Prévenir quand un budget atteint</span><select id="alertPct">${[0.7, 0.8, 0.9].map((v) => `<option value="${v}" ${state.settings.alertPct === v ? "selected" : ""}>${Math.round(v * 100)} %</option>`).join("")}</select></label></div>`;
     app.innerHTML = html;
@@ -1618,6 +1684,91 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveCar" data-id="${esc(c.id)}">Enregistrer</button></div>`, "Offre de voiture");
   }
 
+  /* ================= Réglages à coller ================= */
+  // Une ligne par réglage :
+  //   budget <catégorie> <montant>        epargne <montant>
+  //   prevu rentree|depense <AAAA-MM> <montant> <libellé>
+  //   regle "<libellé du relevé>" <catégorie>
+  //   categorie <id> enveloppe|fixe|revenu <montant> "<nom>" "<mot, mot>"
+  let codePlan = null;
+  function codeTokens(line) { const out = []; const re = /"([^"]*)"|(\S+)/g; let m; while ((m = re.exec(line))) out.push(m[1] !== undefined ? m[1] : m[2]); return out; }
+  function catByRef(ref, pending) {
+    const r = norm(ref);
+    return state.categories.find((c) => norm(c.id) === r || norm(c.name) === r) || (pending || []).find((c) => norm(c.id) === r || norm(c.name) === r) || null;
+  }
+  function moveKw(kw, target) {
+    for (const c of state.categories) c.kw = (c.kw || []).filter((k) => norm(k) !== norm(kw));
+    if (!target.kw.some((k) => norm(k) === norm(kw))) target.kw.push(kw);
+  }
+  function parseCode(text) {
+    const items = [], errors = [], pending = [];
+    for (const raw of String(text || "").split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line || line.startsWith("#")) continue;
+      const tk = codeTokens(line), cmd = norm(tk[0] || "");
+      const bad = (why) => errors.push(`« ${line} » : ${why}`);
+      if (cmd === "budget") {
+        const c = catByRef(tk[1], pending), v = parseAmount(tk[2] || "");
+        if (!c) { bad("catégorie inconnue"); continue; }
+        if (!isFinite(v) || v < 0) { bad("montant illisible"); continue; }
+        if (Math.abs((c.budget || 0) - v) < 0.005) { items.push({ text: `${esc(c.name)} : déjà à ${eur(v)}`, skip: true }); continue; }
+        items.push({ text: `${esc(c.name)} : ${eur(c.budget || 0)} → <b>${eur(v)}</b> par mois`, run: () => { const cc = cat(c.id); if (cc) cc.budget = round2(v); } });
+      } else if (cmd === "epargne") {
+        const v = parseAmount(tk[1] || "");
+        if (!isFinite(v) || v < 0) { bad("montant illisible"); continue; }
+        if (Math.abs((state.settings.goal || 0) - v) < 0.005) { items.push({ text: `Épargne : déjà à ${eur(v)}`, skip: true }); continue; }
+        items.push({ text: `Épargne chaque mois : ${eur(state.settings.goal || 0)} → <b>${eur(v)}</b>`, run: () => { state.settings.goal = round2(v); } });
+      } else if (cmd === "prevu") {
+        const type = norm(tk[1] || ""), ym = tk[2] || "", v = parseAmount(tk[3] || ""), label = tk.slice(4).join(" ").trim();
+        if (!["rentree", "depense"].includes(type)) { bad("indique rentree ou depense"); continue; }
+        if (!/^\d{4}-\d{2}$/.test(ym)) { bad("mois attendu au format 2026-12"); continue; }
+        if (!(v > 0) || !label) { bad("montant ou libellé manquant"); continue; }
+        const exists = state.events.some((e) => norm(e.label) === norm(label) && e.ym === ym);
+        if (exists) { items.push({ text: `${esc(label)}, ${monthName(ym)} : déjà prévu`, skip: true }); continue; }
+        items.push({ text: `Prévu : ${type === "rentree" ? "rentrée" : "dépense"} « ${esc(label)} », ${monthName(ym)}, <b>${type === "rentree" ? "+" : "−"}${eur(v)}</b>`, run: () => state.events.push({ id: uid(), label, type: type === "rentree" ? "in" : "out", ym, amount: round2(v), done: false }) });
+      } else if (cmd === "regle") {
+        const kw = (tk[1] || "").trim(), c = catByRef(tk[2], pending);
+        if (!kw) { bad("libellé manquant"); continue; }
+        if (!c) { bad("catégorie inconnue"); continue; }
+        const n = state.tx.filter((t) => norm(t.label).includes(norm(kw))).length;
+        items.push({ text: `« ${esc(kw)} » rangé dans <b>${esc(c.name)}</b>${n ? ` (${n} opération${n > 1 ? "s" : ""} déjà là)` : ""}`, run: () => { const cc = cat(c.id); if (cc) moveKw(kw, cc); } });
+      } else if (cmd === "categorie") {
+        const id = norm(tk[1] || "").replace(/\s+/g, "-"), kind = norm(tk[2] || ""), v = parseAmount(tk[3] || "0"), name = (tk[4] || "").trim(), kws = String(tk[5] || "").split(",").map((x) => x.trim()).filter(Boolean);
+        if (!id || !["enveloppe", "fixe", "revenu"].includes(kind) || !name || !isFinite(v)) { bad("forme attendue : categorie id enveloppe 0 \"Nom\" \"mot, mot\""); continue; }
+        if (cat(id)) { items.push({ text: `Catégorie « ${esc(cat(id).name)} » : existe déjà`, skip: true }); continue; }
+        pending.push({ id, name, kind, kw: [] });
+        items.push({ text: `Nouvelle catégorie <b>${esc(name)}</b> (${KIND_L[kind].toLowerCase()}, ${eur(v)} par mois)${kws.length ? `, reconnue par ${kws.map(esc).join(", ")}` : ""}`, run: () => { const c = { id, name, kind, budget: round2(v), kw: [], active: true }; state.categories.push(c); for (const k of kws) moveKw(k, c); } });
+      } else bad("ligne non reconnue");
+    }
+    return { items, errors };
+  }
+  function codeSheet() {
+    openSheet(`<h2>Appliquer des réglages</h2><p class="hint">Colle le texte préparé. Tu vois chaque changement avant de l'appliquer.</p>
+      <div class="field"><label for="codeText">Réglages</label><textarea id="codeText" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="budget nourriture 300"></textarea><p class="err" id="codeErr" hidden></p></div>
+      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="codePreview">Voir les changements</button></div>`, "Appliquer des réglages");
+  }
+  function codePreview(text) {
+    const r = parseCode(text);
+    if (!r.items.length && !r.errors.length) { showErr("codeErr", "Colle d'abord le texte des réglages."); return; }
+    codePlan = r.items;
+    const live = r.items.filter((i) => !i.skip);
+    openSheet(`<h2>${live.length} changement${live.length > 1 ? "s" : ""}</h2>
+      <div class="choices">${r.items.map((it, i) => it.skip ? `<p class="hint">${it.text}</p>` : `<label class="check"><input type="checkbox" data-code="${i}" checked><span>${it.text}</span></label>`).join("")}</div>
+      ${r.errors.length ? `<div class="callout warn" style="cursor:default"><span><b>Lignes ignorées</b><br>${r.errors.map(esc).join("<br>")}</span></div>` : ""}
+      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="codeRun" ${live.length ? "" : "disabled"}>Appliquer</button></div>`, "Changements");
+  }
+  function codeRun() {
+    if (!codePlan) return;
+    const keep = new Set([...sheetHost.querySelectorAll("input[data-code]")].filter((x) => x.checked).map((x) => Number(x.dataset.code)));
+    const backup = JSON.stringify(state);
+    let n = 0;
+    // Les nouvelles catégories d'abord, pour que les budgets et règles qui les visent s'appliquent
+    const order = codePlan.map((it, i) => ({ it, i })).filter(({ it, i }) => !it.skip && keep.has(i)).sort((a, b) => (/Nouvelle catégorie/.test(b.it.text) ? 1 : 0) - (/Nouvelle catégorie/.test(a.it.text) ? 1 : 0));
+    for (const { it } of order) { it.run(); n++; }
+    codePlan = null; save(); closeSheet(); shownFree = null; render();
+    toast(`${n} réglage${n > 1 ? "s" : ""} appliqué${n > 1 ? "s" : ""}`, () => { state = migrate(JSON.parse(backup)); save(); shownFree = null; render(); toast("Réglages annulés"); });
+  }
+
   /* ================= Sauvegarde ================= */
   const backupPayload = () => JSON.stringify({ app: APP_ID, version: 2, exportedAt: new Date().toISOString(), state }, null, 1);
   async function doBackup() {
@@ -1805,6 +1956,9 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
       case "copyBackup": { const ta = document.getElementById("bkText"); const done = () => { state.settings.lastBackup = new Date().toISOString(); save(); toast("Sauvegarde copiée"); }; const fb = () => { ta.focus(); ta.select(); toast("Sélectionne le texte puis copie-le"); }; try { navigator.clipboard.writeText(ta.value).then(done, fb); } catch (err) { fb(); } break; }
       case "copy": { const node = document.getElementById(el.dataset.t); try { navigator.clipboard.writeText(node ? node.textContent : "").then(() => toast("Copié"), () => toast("Sélectionne le texte puis copie-le")); } catch (err) { toast("Sélectionne le texte puis copie-le"); } break; }
       case "restore": openRestore(); break;
+      case "codeOpen": codeSheet(); break;
+      case "codePreview": codePreview(val("codeText")); break;
+      case "codeRun": codeRun(); break;
       case "pickBackup": backupInput.value = ""; backupInput.click(); break;
       case "restorePasted": { const t = val("rsText").trim(); const msg = t ? applyBackup(t) : "Colle d'abord le contenu de la sauvegarde."; if (msg) showErr("rsErr", msg); break; }
       case "wipe": confirmSheet("Effacer toutes les données ?", "Ton budget et tes opérations seront supprimés de cet iPhone. Fais une sauvegarde avant si tu veux pouvoir les retrouver.", "Tout effacer", "wipeOk"); break;
@@ -1907,7 +2061,7 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
   const received = receiveFromHash();
   render();
   if (received) render();
-  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
+  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
 })();
 
 </script>
