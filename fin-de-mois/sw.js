@@ -1,5 +1,5 @@
-// Fin de mois : fonctionnement sans réseau. Version 4.
-const CACHE = "fin-de-mois-v4";
+// Fin de mois : fonctionnement sans réseau. Version 4.1.
+const CACHE = "fin-de-mois-v4.1";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const HOME = new URL("./", self.registration.scope).href;
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
@@ -12,7 +12,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   // La page : réseau d'abord pour recevoir les mises à jour, cache si hors connexion
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(CACHE).then((x) => x.put(HOME, c)); return r; }).catch(() => caches.match(HOME)));
+    e.respondWith(fetch(req, { cache: "no-store" }).then((r) => { const c = r.clone(); caches.open(CACHE).then((x) => x.put(HOME, c)); return r; }).catch(() => caches.match(HOME)));
     return;
   }
   // Le reste (icônes, polices) : cache d'abord

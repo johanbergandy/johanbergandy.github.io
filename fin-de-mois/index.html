@@ -1909,8 +1909,17 @@ details.tri-more > div.grid { flex-direction: row; flex-wrap: wrap; gap: 8px; }
 </script>
 
 <script>
+// Mises à jour : vérifiées à l'ouverture et à chaque retour dans l'app ; la nouvelle version se charge d'elle-même
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadController && !reloaded) { reloaded = true; location.reload(); } });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => {
+      reg.update().catch(() => {});
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
+    }).catch(() => {});
+  });
 }
 </script>
 </body>
