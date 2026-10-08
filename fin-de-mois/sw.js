@@ -1,5 +1,5 @@
-// Fin de mois : fonctionnement sans réseau. Version 6.1.
-const CACHE = "fin-de-mois-v6.1";
+// Fin de mois : fonctionnement sans réseau. Version 7.0.
+const CACHE = "fin-de-mois-v7.0";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const HOME = new URL("./", self.registration.scope).href;
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
