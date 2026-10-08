@@ -510,6 +510,13 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
 .row:has(.tile) .sub { grid-column: 2 / -1; }
 .summary .grp { display: flex; align-items: center; gap: 7px; }
 .summary .grp i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.picks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.picks .catpick { position: relative; }
+.mi > i { width: 10px; }
+.midate { grid-template-columns: 22px 1fr; cursor: pointer; padding-bottom: 10px; }
+.midate svg { visibility: visible; color: var(--muted); }
+.midate input { grid-column: 2; justify-self: start; border: 0; background: var(--fill); border-radius: 8px; padding: 6px 8px; font-size: 16px; min-width: 0; max-width: 100%; margin-top: 2px; }
+.pad .menu { min-width: 230px; }
 
 </style>
 
@@ -686,6 +693,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   }
 
   function usualDay(c) {
+    if (c.day) return c.day;
     let latest = null;
     for (const t of state.tx) if (classify(t) === c.id && t.amount < 0 && (!latest || t.date > latest)) latest = t.date;
     return latest ? Number(latest.slice(8, 10)) : null;
@@ -1062,6 +1070,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   let catView = null;
   let typed = "";
   let padCat = null;
+  let padDate = null; // null = aujourd'hui
   let opsQuery = "";
   let opsOnly = false;
   let lastImport = null;
@@ -1229,6 +1238,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       <button class="hero-next" data-act="bills"><span>${next ? `Prochaine facture : <b>${esc(next.c.name)}</b>, vers le ${next.day}, ${eur0(next.amount)}` : rest > 0 ? `Encore <b>${eur0(rest)}</b> de factures ce mois-ci` : "Toutes les factures du mois sont passées"}</span>${ICON.chev}</button>
       ${goalLine()}
     </section>`;
+    html += remindersHtml();
     html += paydayAlert();
     html += renderPad();
     const n = state.tx.filter((t) => classify(t) === null).length;
@@ -1316,6 +1326,33 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     return pins;
   }
 
+  /* ---------- Factures : « Payée » et rappel de celles qu'on paie soi-même ---------- */
+  // Une facture cochée « payée » est notée à son montant prévu ; le vrai prélèvement du relevé la remplace à l'import
+  function markPaid(id) {
+    const c = cat(id);
+    if (!c) return;
+    const t = { id: uid(), date: todayISO(), label: c.name, amount: -round2(c.budget || 0), source: "marque", manualCat: c.id, paidMark: true };
+    state.tx.push(t); sortTx(); save(); haptic(); render();
+    toast(`${c.name} : payée`, () => { state.tx = state.tx.filter((x) => x.id !== t.id); save(); render(); toast("Remise à venir"); });
+  }
+  function reconcilePaid() {
+    const real = new Set(state.tx.filter((t) => t.source === "revolut").map((t) => { const k = classify(t); return k && cat(k) && cat(k).kind !== "enveloppe" ? `${k}|${ymOf(t.date)}` : null; }).filter(Boolean));
+    const before = state.tx.length;
+    state.tx = state.tx.filter((t) => !(t.paidMark && real.has(`${t.manualCat}|${ymOf(t.date)}`)));
+    return before - state.tx.length;
+  }
+  function dueReminders() {
+    const ym = ymNow(), day = new Date().getDate(), dim = daysIn(ym);
+    const m = computeMonth(ym);
+    return m.lines.filter((l) => l.c.kind === "fixe" && l.c.active && l.c.selfPay && !l.has && l.plan > 0).map((l) => {
+      const due = Math.min(usualDay(l.c) || 0, dim);
+      return due ? { c: l.c, due, amount: l.plan, late: day > due, soon: day >= due - 3 } : null;
+    }).filter((x) => x && (x.late || x.soon));
+  }
+  function remindersHtml() {
+    return dueReminders().map((x) => `<div class="callout ${x.late ? "bad" : "warn"}" role="status" style="cursor:default"><span><b>${esc(x.c.name)} : ${x.late ? `à payer depuis le ${x.due}` : `à payer vers le ${x.due}`}</b>, ${eur0(x.amount)}. Tu la paies toi-même.</span><button class="btn small dark" data-act="markPaid" data-id="${esc(x.c.id)}">Payée</button></div>`).join("");
+  }
+
   /* ---------- Pavé « Et si je paie » ---------- */
   function renderPad() {
     const envs = envCats();
@@ -1325,19 +1362,30 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     const chips = `<div class="catpick"><button class="catbtn" data-act="catMenu" aria-haspopup="menu" aria-expanded="false"><span class="for">Pour</span><i class="cdot" id="padCatDot" style="background:${(opts.find((o) => o[0] === padCat) || opts[opts.length - 1])[2]}"></i><b id="padCatName">${esc(curName)}</b>${ICON.updown}</button>
       <div class="menu" id="catMenu" role="menu" hidden>${opts.map(([id, name, col]) => `<button role="menuitemradio" class="mi" data-act="padCat" data-v="${esc(id)}" aria-checked="${padCat === id}">${ICON.check}<span>${esc(name)}</span><i class="cdot" style="background:${col}"></i></button>`).join("")}</div></div>`;
     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "0", "del"].map((k) => `<button class="key" data-act="key" data-v="${k}" aria-label="${k === "del" ? "Effacer" : k === "," ? "Virgule" : k}">${k === "del" ? ICON.del : k}</button>`).join("");
+    const when = `<div class="catpick"><button class="catbtn" data-act="whenMenu" aria-haspopup="menu" aria-expanded="false"><span class="for">Quand</span><b id="padWhen">${esc(whenLabel(padDate))}</b>${ICON.updown}</button>
+      <div class="menu" id="whenMenu" role="menu" hidden>${[[null, "Aujourd'hui"], [isoShift(-1), "Hier"], [isoShift(-2), "Avant-hier"]].map(([d, n]) => `<button role="menuitemradio" class="mi" data-act="padWhen" data-v="${d || ""}" aria-checked="${(padDate || null) === d}">${ICON.check}<span>${n}</span><i></i></button>`).join("")}
+        <label class="mi midate">${ICON.cal}<span>Autre date</span><input type="date" id="padDateIn" max="${todayISO()}" value="${esc(padDate || todayISO())}" aria-label="Autre date"></label></div></div>`;
     return `<section class="pad" aria-label="Et si je paie">
       <p class="q">Et si je paie…</p>
       <div class="amt num" id="padAmt" aria-live="polite"></div>
       <div class="verdict" id="verdict" aria-live="polite"></div>
-      ${chips}
+      <div class="picks">${chips}${when}</div>
       <div class="keys">${keys}</div>
       <div class="acts"><button class="btn secondary" data-act="padClear">Juste pour voir</button><button class="btn dark" data-act="padPay" id="padPay">Je l'ai payé</button></div>
     </section>`;
   }
 
+  const isoShift = (k) => { const d = new Date(); d.setDate(d.getDate() + k); return isoOf(d); };
+  function whenLabel(d) {
+    if (!d || d === todayISO()) return "Aujourd'hui";
+    if (d === isoShift(-1)) return "Hier";
+    if (d === isoShift(-2)) return "Avant-hier";
+    return dayLabel(d);
+  }
+
   // Simule une dépense d'aujourd'hui sans l'enregistrer
   function whatIf(amount, catId) {
-    const tmp = { id: "__sim", date: todayISO(), label: "", amount: -round2(amount), source: "sim", manualCat: catId || undefined };
+    const tmp = { id: "__sim", date: padDate && ymOf(padDate) === ymNow() ? padDate : todayISO(), label: "", amount: -round2(amount), source: "sim", manualCat: catId || undefined };
     state.tx.push(tmp);
     try { const m = computeMonth(ymNow()); return { m, f: freeToSpend(m), r: reste(m) }; }
     finally { state.tx.pop(); }
@@ -1399,12 +1447,12 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     const a = parseAmount(typed || "0");
     if (!(a > 0)) { toast("Tape d'abord un montant"); return; }
     const catId = padCat === "__autre" ? null : padCat;
-    const now = new Date();
-    const tx = { id: uid(), date: todayISO(), time: `${pad(now.getHours())}:${pad(now.getMinutes())}`, label: catId ? cat(catId).name : "Dépense", amount: -round2(a), source: "manuel", manualCat: catId || null };
+    const now = new Date(), d = padDate || todayISO(), isToday = d === todayISO();
+    const tx = { id: uid(), date: d, time: isToday ? `${pad(now.getHours())}:${pad(now.getMinutes())}` : undefined, label: catId ? cat(catId).name : "Dépense", amount: -round2(a), source: "manuel", manualCat: catId || null };
     state.tx.push(tx); sortTx();
     state.settings.lastPadCat = padCat;
-    save(); typed = ""; render(); haptic();
-    toast(`Enregistré : ${eur(a)}${catId ? `, ${cat(catId).name}` : ""}`, () => { state.tx = state.tx.filter((t) => t.id !== tx.id); save(); render(); toast("Dépense annulée"); });
+    save(); typed = ""; padDate = null; render(); haptic();
+    toast(`Enregistré : ${eur(a)}${catId ? `, ${cat(catId).name}` : ""}${isToday ? "" : `, ${whenLabel(d).toLowerCase()}`}`, () => { state.tx = state.tx.filter((t) => t.id !== tx.id); save(); render(); toast("Dépense annulée"); });
   }
 
   function howSheet() {
@@ -1435,8 +1483,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     const pins = fixedPins(m, daysIn(m.ym)).filter((p) => p.amount > 0 || p.paid).sort((a, b) => (a.paid === b.paid ? (a.day || 99) - (b.day || 99) : a.paid ? 1 : -1));
     openSheet(`<h2>Factures de ${MONTHS[new Date().getMonth()]}</h2>
       <div class="rows" style="background:var(--surface-2)">${pins.map((p) => `<div class="row"><span class="name">${esc(p.c.name)}</span><span class="amt">${eur(p.amount)}</span>
-        <span class="sub">${p.paid ? `Payée${p.c.budget > 0 && Math.abs(p.amount - p.c.budget) >= 0.01 ? `, prévu ${eur(p.c.budget)}` : ""}` : p.day ? `Vers le ${p.day}` : "Date pas encore connue"}</span><span class="st ${p.paid ? "paid" : ""}">${p.paid ? "payée" : "à venir"}</span></div>`).join("") || `<div class="row"><span class="name">Aucune facture prévue</span></div>`}</div>
-      <p class="hint">Les dates viennent de tes relevés précédents. Les montants se changent dans l'onglet Budget, en touchant la facture.</p>
+        <span class="sub">${p.paid ? `Payée${p.c.budget > 0 && Math.abs(p.amount - p.c.budget) >= 0.01 ? `, prévu ${eur(p.c.budget)}` : ""}` : p.day ? `Vers le ${p.day}${p.c.selfPay ? ", tu la paies toi-même" : ""}` : "Date pas encore connue"}</span>${p.paid ? `<span class="st paid">payée</span>` : `<span class="st"><button class="btn small secondary" data-act="markPaid" data-id="${esc(p.c.id)}">Payée</button></span>`}</div>`).join("") || `<div class="row"><span class="name">Aucune facture prévue</span></div>`}</div>
+      <p class="hint">« Payée » la compte tout de suite ; le vrai prélèvement du relevé la remplace à l'import, même s'il est d'un autre montant. Jour et montant se règlent dans l'onglet Budget, en touchant la facture.</p>
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Fermer</button></div>`, "Factures du mois");
   }
 
@@ -1618,7 +1666,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       let tag, tl;
       if (k === null) { const s = suggest(t); tag = `<span class="tag todo">À trier</span>${s ? ` <span class="tag sugg">${esc(cat(s.id).name)} ?</span>` : ""}`; tl = tileRaw("#FF9500", "question"); }
       else if (k === "hors") { tag = `<span class="tag">Ne compte pas</span>`; tl = tileRaw("#C7C7CC", "minus"); }
-      else { tag = `<span class="tag">${esc(cat(k).name)}${t.source === "manuel" ? ", saisie" : t.source === "applepay" ? ", Apple Pay" : ""}${t.orig ? ", modifiée" : ""}</span>`; tl = tile(cat(k)); }
+      else { tag = `<span class="tag">${esc(cat(k).name)}${t.source === "manuel" ? ", saisie" : t.source === "marque" ? ", cochée payée" : t.source === "applepay" ? ", Apple Pay" : ""}${t.orig ? ", modifiée" : ""}</span>`; tl = tile(cat(k)); }
       block += `<button class="row" data-act="openTx" data-id="${esc(t.id)}">${tl}<span class="name">${esc(t.label || catName(k))}</span><span class="amt ${k === "hors" ? "muted" : t.amount > 0 ? "in" : ""}">${t.amount > 0 ? "+" : "−"}${eur(Math.abs(t.amount))}</span><span class="sub">${tag}${t.note ? `<br><span class="note">${esc(t.note)}</span>` : ""}</span></button>`;
     }
     flush();
@@ -1767,7 +1815,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
 
   function renderPrevu() {
     const list = state.events.filter((e) => e.ym >= ymNow()).sort((a, b) => (a.ym < b.ym ? -1 : 1));
-    const rows = list.map((e) => `<button class="row" data-act="editEvent" data-id="${esc(e.id)}"><span class="name">${esc(e.label)}</span><span class="amt ${e.type === "in" ? "in" : ""} ${e.done ? "muted" : ""}">${e.type === "in" ? "+" : "−"}${eur(e.amount)}</span><span class="sub">${cap(monthName(e.ym))}${e.done ? ", arrivé" : ""}</span></button>`).join("");
+    const rows = list.map((e) => `<button class="row" data-act="editEvent" data-id="${esc(e.id)}"><span class="name">${esc(e.label)}</span><span class="amt ${e.type === "in" ? "in" : ""} ${e.done ? "muted" : ""}">${e.type === "in" ? "+" : "−"}${eur(e.amount)}</span><span class="sub">${e.day && !e.day.endsWith("-01") ? cap(dayLabel(e.day)) : cap(monthName(e.ym))}${e.done ? ", arrivé" : ""}</span></button>`).join("");
     return `<section class="section"><div class="sh"><h2>Prévu</h2><span>hors dépenses habituelles</span></div><div class="rows">${rows}
       <button class="row" data-act="editEvent"><span class="name" style="color:var(--accent)">Ajouter une rentrée ou une dépense prévue</span>${ICON.chev}<span class="sub">Une prime, une facture annuelle, un cadeau</span></button></div></section>`;
   }
@@ -1919,13 +1967,17 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         <div class="bar big" aria-hidden="true"><i class="${over ? "over" : ""}" style="width:${w}%;${over ? "" : `background:${colorOf(c)}`}"></i></div>`;
     } else {
       const amt = l.has ? l.actual : l.plan;
-      top = `<div class="catcard">${tile(c, "big")}<div><p class="k">${l.has ? (c.kind === "revenu" ? "Reçu" : "Payée") : "Prévu"}</p><p class="v">${eur(amt)}</p><p class="s">${l.has ? `${ops.length} opération${ops.length > 1 ? "s" : ""} ce mois-ci` : usualDay(c) ? `D'habitude vers le ${usualDay(c)}` : "Pas encore vue ce mois-ci"}</p></div></div>`;
+      const canMark = c.kind === "fixe" && !past && !l.has && c.active && c.budget > 0;
+      const marked = c.kind === "fixe" && !past && ops.some((t) => t.paidMark);
+      top = `${canMark ? `<button class="btn primary" data-act="markPaid" data-id="${esc(c.id)}" style="order:2">Je l'ai payée</button>` : ""}${marked ? `<p class="hint" style="order:2">Cochée payée à la main. Le relevé la remplacera par le vrai prélèvement.</p>` : ""}<div class="catcard">${tile(c, "big")}<div><p class="k">${l.has ? (c.kind === "revenu" ? "Reçu" : "Payée") : "Prévu"}</p><p class="v">${eur(amt)}</p><p class="s">${l.has ? `${ops.length} opération${ops.length > 1 ? "s" : ""} ce mois-ci` : usualDay(c) ? `D'habitude vers le ${usualDay(c)}` : "Pas encore vue ce mois-ci"}</p></div></div>`;
     }
     html += `<section class="panel">${top}</section>`;
     html += `<section class="section"><div class="sh"><h2>Opérations</h2><span>${ops.length}</span></div>${ops.length ? `<div class="rows">${ops.map((t) => `<button class="row" data-act="openTx" data-id="${esc(t.id)}"><span class="name">${esc(t.label || c.name)}</span><span class="amt ${t.amount > 0 ? "in" : ""}">${t.amount > 0 ? "+" : "−"}${eur(Math.abs(t.amount))}</span><span class="sub">${dayLabel(t.date)}${t.source === "manuel" ? ", saisie" : ""}</span></button>`).join("")}</div>` : `<p class="hint">Aucune opération rangée ici en ${monthName(ym)}.</p>`}</section>`;
     html += `<section class="section"><div class="sh"><h2>Réglages de la catégorie</h2></div><div class="panel">
       <div class="field"><label for="n-${esc(c.id)}">Nom</label><input type="text" id="n-${esc(c.id)}" data-edit="name" data-id="${esc(c.id)}" value="${esc(c.name)}"></div>
       <div class="field"><label for="b-${esc(c.id)}">${c.kind === "revenu" ? "Montant attendu par mois" : c.kind === "fixe" ? "Montant par mois" : "Budget par mois"}</label>${moneyInput("b-" + esc(c.id), c.budget, "Montant", `data-edit="budget" data-id="${esc(c.id)}"`)}</div>
+      ${c.kind !== "enveloppe" ? `<div class="field"><label for="d-${esc(c.id)}">${c.kind === "revenu" ? "Jour du versement" : "Jour du paiement"}</label><input type="text" class="input" inputmode="numeric" id="d-${esc(c.id)}" data-edit="day" data-id="${esc(c.id)}" value="${c.day || ""}" placeholder="${usualDay(c) ? `D'après tes relevés : le ${usualDay(c)}` : "Ex. : 10"}"></div>` : ""}
+      ${c.kind === "fixe" ? `<label class="switch" for="s-${esc(c.id)}"><span>Je la paie moi-même<small>Virement à faire : l'appli te le rappelle 3 jours avant</small></span><input type="checkbox" id="s-${esc(c.id)}" data-edit="selfPay" data-id="${esc(c.id)}" ${c.selfPay ? "checked" : ""}></label>` : ""}
       ${c.kind === "enveloppe" ? `<div class="field"><span class="flabel">Famille</span><div class="seg" role="group" aria-label="Famille">${FAM_ENV.map((x) => `<button data-act="catFam" data-id="${esc(c.id)}" data-v="${x}" aria-pressed="${f === x}">${FAM[x].name}</button>`).join("")}</div></div>` : ""}
       <label class="switch" for="a-${esc(c.id)}"><span>Compter chaque mois${c.id === "voiture" ? "<small>À activer quand tu auras la voiture</small>" : ""}</span><input type="checkbox" id="a-${esc(c.id)}" data-edit="active" data-id="${esc(c.id)}" ${c.active ? "checked" : ""}></label>
       <div class="field"><label for="k-${esc(c.id)}">Commerces reconnus</label><input type="text" id="k-${esc(c.id)}" data-edit="kw" data-id="${esc(c.id)}" value="${esc((c.kw || []).join(", "))}" placeholder="Ex. : Intermarché, Auchan" autocapitalize="off"><p class="hint">Une opération dont le libellé contient l'un de ces mots est rangée ici toute seule. Séparés par des virgules.</p></div>
@@ -1947,14 +1999,14 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         <li><b>Ajouter au fichier texte</b> : iCloud Drive, dossier <code>Fin de mois</code>, fichier <code>journal-apple-pay.txt</code>, nouvelle ligne</li></ul></li>
       <li>Le dimanche, dans Opérations, touche <b>Importer le journal Apple Pay</b>.</li></ol>
       <p class="hint">Ligne attendue : <code>2026-10-08|14:32|Intermarché|12,50 €</code>. Les noms des actions peuvent varier un peu selon ta version d'iOS.</p></div></section>`;
-    html += `<section class="section"><div class="sh"><h2>2. Ou l'ajouter tout de suite</h2></div><div class="panel guide">`;
-    html += IN_CLAUDE ? `<p class="hint">Uniquement avec la version installée sur ton site.</p>` : `<p class="hint">Remplace la dernière action par <b>Encoder en URL</b> sur le commerçant, puis <b>Ouvrir les URL</b> avec :</p>
-      <div class="copyline"><code id="urlTpl">${esc(site)}#ajout&amp;d=[yyyy-MM-dd]&amp;h=[HH:mm]&amp;c=[Commerçant encodé]&amp;m=[Montant]</code><button class="btn small secondary" data-act="copy" data-t="urlTpl">Copier</button></div>
-      <p class="hint">L'app s'ouvre après chaque paiement et l'ajoute. Ce qui suit le # ne quitte jamais ton iPhone.</p>`;
-    html += `</div></section><section class="section"><div class="sh"><h2>3. Rappel du dimanche</h2></div><div class="panel guide"><ol>
-      <li><b>Automatisation</b>, <b>+</b>, <b>Heure de la journée</b> : 19:00, hebdomadaire, dimanche, <b>Exécuter immédiatement</b>.</li>
-      <li>Action <b>Afficher la notification</b> : « Importe ton relevé dans Fin de mois ».</li></ol></div></section>
-      <p class="hint">Limites : l'automatisation se déclenche aussi sur un paiement refusé et peut parfois échouer. Les paiements par carte physique et les prélèvements n'arrivent que par le relevé.</p>`;
+    html += `<section class="section"><div class="sh"><h2>2. Rappel du soir</h2></div><div class="panel guide"><ol>
+      <li><b>Automatisation</b>, <b>+</b>, <b>Heure de la journée</b> : 21:00, quotidien, <b>Exécuter immédiatement</b>.</li>
+      <li>Action <b>Afficher la notification</b> : « Note tes dépenses du jour dans Fin de mois ».</li></ol></div></section>
+      <section class="section"><div class="sh"><h2>3. Rappel du relevé, une fois par mois</h2></div><div class="panel guide"><ol>
+      <li><b>Automatisation</b>, <b>+</b>, <b>Heure de la journée</b> : 19:00, mensuel, le 1er, <b>Exécuter immédiatement</b>.</li>
+      <li>Action <b>Afficher la notification</b> : « Importe ton relevé Revolut dans Fin de mois ».</li></ol>
+      <p class="hint">Le relevé ajoute les prélèvements et corrige ce que tu as noté : chaque saisie du pavé est remplacée par la vraie ligne, rien n'est compté deux fois.</p></div></section>
+      <p class="hint">Limites : l'automatisation Apple Pay se déclenche aussi sur un paiement refusé et peut parfois échouer. Un lien ouvert depuis Raccourcis s'ouvre dans Safari et pas dans l'appli : c'est pour ça que le journal passe par un fichier.</p>`;
     app.innerHTML = html;
   }
 
@@ -2047,7 +2099,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
           <p class="hint">Ex. : 20 € de ce ticket de courses étaient des sorties.</p></div>
         <p class="err" id="txErr" hidden></p>
         ${t.orig ? `<button class="btn secondary" data-act="restoreTx" data-id="${esc(t.id)}">Revenir au montant du relevé</button>` : ""}</div></details>
-      ${t.source === "manuel" || t.parent ? `<button class="btn danger" data-act="askDelTx" data-id="${esc(t.id)}">Supprimer</button>` : ""}
+      ${t.source === "manuel" || t.source === "marque" || t.parent ? `<button class="btn danger" data-act="askDelTx" data-id="${esc(t.id)}">Supprimer</button>` : ""}
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveTx" data-id="${esc(t.id)}">Enregistrer</button></div>`, "Opération");
   }
 
@@ -2080,7 +2132,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       <div class="seg" role="group" aria-label="Type"><button type="button" data-act="evType" data-v="out" aria-pressed="${e.type === "out"}">Dépense</button><button type="button" data-act="evType" data-v="in" aria-pressed="${e.type === "in"}">Rentrée</button></div>
       <input type="hidden" id="evTypeVal" value="${esc(e.type)}">
       <div class="field"><label for="evLabel">Quoi</label><input type="text" id="evLabel" value="${esc(e.label)}" placeholder="Ex. : prime de décembre"></div>
-      <div class="grid2"><div class="field"><label for="evYm">Mois</label><input type="month" id="evYm" value="${esc(e.ym)}"></div><div class="field"><label for="evAmt">Montant</label><div class="money-in"><input id="evAmt" inputmode="decimal" value="${esc(amountText(e.amount))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
+      <div class="grid2"><div class="field"><label for="evDate">Date</label><input type="date" id="evDate" value="${esc(e.day || `${e.ym}-01`)}"></div><div class="field"><label for="evAmt">Montant</label><div class="money-in"><input id="evAmt" inputmode="decimal" value="${esc(amountText(e.amount))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
       <p class="err" id="evErr" hidden></p>
       ${id ? `<label class="switch" for="evDone"><span>C'est arrivé<small>Il est dans tes opérations, ne plus le compter en prévu</small></span><input type="checkbox" id="evDone" ${e.done ? "checked" : ""}></label><button class="btn danger" data-act="delEvent" data-id="${esc(e.id)}">Supprimer</button>` : ""}
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveEvent" data-id="${esc(e.id)}">Enregistrer</button></div>`, "Prévision");
@@ -2318,7 +2370,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   /* ================= Interactions ================= */
   document.addEventListener("click", (e) => {
     const menu = document.getElementById("catMenu");
-    if (menu && !menu.hidden && !e.target.closest(".catpick")) { menu.hidden = true; menu.previousElementSibling.setAttribute("aria-expanded", "false"); }
+    for (const mm of [menu, document.getElementById("whenMenu")]) if (mm && !mm.hidden && !(e.target.closest(".catpick") && e.target.closest(".catpick").contains(mm))) { mm.hidden = true; mm.previousElementSibling.setAttribute("aria-expanded", "false"); }
     const el = e.target.closest("[data-act]");
     if (!el) return;
     const act = el.dataset.act;
@@ -2329,6 +2381,9 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       case "how": howSheet(); break;
       case "bills": billsSheet(); break;
       case "key": padKey(el.dataset.v); break;
+      case "markPaid": markPaid(el.dataset.id); if (sheetHost.innerHTML) closeSheet(); break;
+      case "whenMenu": { const m = document.getElementById("whenMenu"); const open = m.hidden; m.hidden = !open; el.setAttribute("aria-expanded", String(open)); const o = document.getElementById("catMenu"); if (o && open) o.hidden = true; break; }
+      case "padWhen": { padDate = el.dataset.v || null; haptic(); const w = document.getElementById("padWhen"); if (w) w.textContent = whenLabel(padDate); for (const b of app.querySelectorAll('[data-act="padWhen"]')) b.setAttribute("aria-checked", String(b === el)); const m = document.getElementById("whenMenu"); if (m) m.hidden = true; updatePad(); break; }
       case "catMenu": { const m = document.getElementById("catMenu"); const open = m.hidden; m.hidden = !open; el.setAttribute("aria-expanded", String(open)); if (open) { const cur = m.querySelector('[aria-checked="true"]') || m.querySelector(".mi"); cur.focus({ preventScroll: true }); } break; }
       case "padCat": { haptic(); padCat = el.dataset.v; for (const b of app.querySelectorAll('[data-act="padCat"]')) b.setAttribute("aria-checked", String(b === el)); const nm = document.getElementById("padCatName"); if (nm) nm.textContent = el.textContent.trim(); const dt = document.getElementById("padCatDot"), cd = el.querySelector(".cdot"); if (dt && cd) dt.style.background = cd.style.background; const m = document.getElementById("catMenu"); if (m) { m.hidden = true; m.previousElementSibling.setAttribute("aria-expanded", "false"); m.previousElementSibling.focus({ preventScroll: true }); } updatePad(); break; }
       case "padClear": typed = ""; updatePad(); break;
@@ -2405,11 +2460,11 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       case "editEvent": eventSheet(el.dataset.id); break;
       case "evType": document.getElementById("evTypeVal").value = el.dataset.v; for (const b of el.parentElement.children) b.setAttribute("aria-pressed", String(b === el)); break;
       case "saveEvent": {
-        const label = val("evLabel").trim(), ym = val("evYm"), a = parseAmount(val("evAmt"));
+        const label = val("evLabel").trim(), dd = val("evDate"), ym = dd.slice(0, 7), a = parseAmount(val("evAmt"));
         if (!label) { showErr("evErr", "Donne un nom, par exemple « prime de décembre »."); break; }
-        if (!/^\d{4}-\d{2}$/.test(ym)) { showErr("evErr", "Choisis le mois."); break; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dd)) { showErr("evErr", "Choisis la date."); break; }
         if (!(a > 0)) { showErr("evErr", "Indique un montant, par exemple 800."); break; }
-        const data = { label, ym, amount: round2(a), type: val("evTypeVal") === "in" ? "in" : "out", done: !!(document.getElementById("evDone") || {}).checked };
+        const data = { label, ym, day: dd, amount: round2(a), type: val("evTypeVal") === "in" ? "in" : "out", done: !!(document.getElementById("evDone") || {}).checked };
         if (el.dataset.id) Object.assign(state.events.find((x) => x.id === el.dataset.id), data); else state.events.push({ id: uid(), ...data });
         save(); closeSheet(); render(); toast("Enregistré"); break;
       }
@@ -2567,6 +2622,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
     const t = e.target;
     if (t.id === "buyYm") { buy.ym = t.value; updateBuy(); return; }
     if (t.id === "projCar") { projCar = t.value; renderProjets(); return; }
+    if (t.id === "padDateIn") { if (t.value && t.value <= todayISO()) { padDate = t.value === todayISO() ? null : t.value; const w = document.getElementById("padWhen"); if (w) w.textContent = whenLabel(padDate); const m = document.getElementById("whenMenu"); if (m) m.hidden = true; updatePad(); } return; }
     if (t.id === "hapOn") { state.settings.haptics = t.checked; save(); haptic(); return; }
     if (t.id === "estOn") { state.settings.estimate = t.checked; save(); toast(t.checked ? "Estimation activée" : "Estimation désactivée"); return; }
     if (t.id === "alertPct") { state.settings.alertPct = Number(t.value); save(); toast("Enregistré"); return; }
@@ -2580,6 +2636,8 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       else if (ed === "budget") { const v = parseAmount(t.value || "0"); if (!isFinite(v) || v < 0) { t.closest(".money-in").classList.add("invalid"); toast("Montant illisible, par exemple 450 ou 12,50"); return; } c.budget = round2(v); }
       else if (ed === "kw") c.kw = t.value.split(",").map((s) => s.trim()).filter(Boolean);
       else if (ed === "active") c.active = t.checked;
+      else if (ed === "selfPay") c.selfPay = t.checked;
+      else if (ed === "day") { const v = parseInt(String(t.value).replace(/\D/g, ""), 10); if (t.value.trim() && !(v >= 1 && v <= 31)) { toast("Jour entre 1 et 31"); return; } c.day = v >= 1 && v <= 31 ? v : undefined; }
       save();
       shownFree = null; render();
       toast("Enregistré");
@@ -2604,7 +2662,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
 
   function readFile(input, cb) { const file = input.files && input.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => cb(String(r.result || "")); r.onerror = () => toast("Le fichier n'a pas pu être lu"); r.readAsText(file, "utf-8"); }
   csvInput.addEventListener("change", () => readFile(csvInput, (text) => {
-    try { const r = importRevolut(text); save(); lastImport = r; triSkip = new Set(); shownFree = null; viewYM = ymNow(); go("operations"); toast(r.added ? `${r.added} opération${r.added > 1 ? "s" : ""} ajoutée${r.added > 1 ? "s" : ""}` : "Aucune nouvelle opération"); }
+    try { const r = importRevolut(text); r.merged = (r.merged || 0) + reconcilePaid(); save(); lastImport = r; triSkip = new Set(); shownFree = null; viewYM = ymNow(); go("operations"); toast(r.added ? `${r.added} opération${r.added > 1 ? "s" : ""} ajoutée${r.added > 1 ? "s" : ""}` : "Aucune nouvelle opération"); }
     catch (err) { openSheet(`<h2>Import impossible</h2><p class="hint">${esc(err.message || "Le fichier n'a pas pu être lu.")}</p><div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Fermer</button></div>`, "Import impossible"); }
   }));
   journalInput.addEventListener("change", () => readFile(journalInput, (text) => { const r = importJournal(text); r.journal = true; save(); lastImport = r; shownFree = null; go("operations"); toast(r.added ? `${r.added} paiement${r.added > 1 ? "s" : ""} ajouté${r.added > 1 ? "s" : ""}` : "Aucun nouveau paiement"); }));
@@ -2622,7 +2680,7 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
   const received = receiveFromHash();
   render();
   if (received) render();
-  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, reste, famOf, queueState, spentToday, regretLine, carCalc, carOptions, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
+  window.__finDeMois = { get bsBlocked() { return budgetSuggestions.blocked; }, dueReminders, reconcilePaid, reste, famOf, queueState, spentToday, regretLine, carCalc, carOptions, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
 })();
 
 </script>
