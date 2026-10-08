@@ -546,12 +546,18 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
       { id: "sport", name: "Salle de sport", kind: "fixe", budget: 0, kw: [], active: true },
       { id: "gmf", name: "GMF", kind: "fixe", budget: 0, kw: ["Gmf"], active: true },
       { id: "revolut", name: "Revolut", kind: "fixe", budget: 0, kw: ["abonnement Metal"], active: true },
+      { id: "abonnements", name: "Abonnements", kind: "fixe", budget: 0, kw: ["IONOS", "iCloud", "Netflix", "Spotify", "Deezer"], active: true },
       { id: "voiture", name: "Voiture (LLD)", kind: "fixe", budget: 0, kw: [], active: false },
-      { id: "nourriture", name: "Nourriture", kind: "enveloppe", budget: 0, kw: ["Intermarché"], active: true },
-      { id: "essence", name: "Essence", kind: "enveloppe", budget: 0, kw: ["Total", "Esso"], active: true },
-      { id: "sorties", name: "Sorties et loisirs", kind: "enveloppe", budget: 0, kw: [], active: true },
-      { id: "especes", name: "Espèces", kind: "enveloppe", budget: 0, kw: ["Retrait d'espèces"], active: true },
+      { id: "nourriture", name: "Courses", kind: "enveloppe", budget: 0, kw: ["Intermarché", "Grand Frais", "Carrefour", "Leclerc", "Auchan", "Lidl", "Aldi", "Franprix", "Monoprix", "Coccinelle", "Boulangerie", "Marie Blachère", "Mie Câline", "Super U", "Hyper U"], active: true },
+      { id: "sorties", name: "Restos et sorties", kind: "enveloppe", budget: 0, kw: ["Tabac", "McDonald", "Burger King", "KFC", "Five Guys", "Subway", "Gaumont", "UGC", "Pathé", "Brasserie", "Pizza"], active: true },
       { id: "livraisons", name: "Livraisons de repas", kind: "enveloppe", budget: 0, kw: ["Uber Eats", "Deliveroo"], active: true },
+      { id: "especes", name: "Espèces", kind: "enveloppe", budget: 0, kw: ["Retrait d'espèces"], active: true },
+      { id: "essence", name: "Essence", kind: "enveloppe", budget: 0, kw: ["Total", "Esso", "Station-service", "Shell", "Avia"], active: true },
+      { id: "auto", name: "Voiture : péages, entretien", kind: "enveloppe", budget: 0, kw: ["Sanef", "Norauto", "Feu Vert", "Speedy", "Midas", "Indigo", "PayByPhone", "Station Lavage"], active: true },
+      { id: "sportplus", name: "Sport : séances, matériel", kind: "enveloppe", budget: 0, kw: ["Decathlon", "Intersport", "Sport 2000", "Nutrition"], active: true },
+      { id: "soins", name: "Soins et santé", kind: "enveloppe", budget: 0, kw: ["Pharmacie", "Sephora", "Coiffure"], active: true },
+      { id: "shopping", name: "Shopping et maison", kind: "enveloppe", budget: 0, kw: ["Amazon", "Temu", "Ikea", "Darty", "Uniqlo", "H&M", "Zara", "Stradivarius", "Chaussea", "Laverie", "leboncoin", "Nespresso"], active: true },
+      { id: "imprevus", name: "Imprévus et gros achats", kind: "enveloppe", budget: 0, kw: ["Booking.com", "Airbnb"], active: true },
     ];
   }
 
@@ -1977,6 +1983,18 @@ html[data-nav="back"]::view-transition-new(page) { animation: pop-in .42s var(--
         if (!name || !(v > 0) || !isFinite(have)) { bad("forme attendue : objectif \"Nom\" montant [déjà de côté]"); continue; }
         if (state.goals.some((g) => norm(g.name) === norm(name))) { items.push({ text: `Projet « ${esc(name)} » : existe déjà`, skip: true }); continue; }
         items.push({ text: `Projet d'épargne <b>${esc(name)}</b> : ${eur0(v)}${have ? `, ${eur0(have)} déjà de côté` : ""}, rempli dans l'ordre`, run: () => { if (!state.settings.queueStart) state.settings.queueStart = todayISO(); state.goals.push({ id: uid(), name, target: round2(v), saved: round2(have || 0), date: "", queue: true }); } });
+      } else if (cmd === "mots") {
+        const c = catByRef(tk[1], pending), kws = String(tk[2] || "").split(",").map((x) => x.trim()).filter(Boolean);
+        if (!c || !kws.length) { bad("forme attendue : mots catégorie \"mot, mot\""); continue; }
+        const fresh = kws.filter((k) => !(c.kw || []).some((x) => norm(x) === norm(k)));
+        if (!fresh.length) { items.push({ text: `${esc(c.name)} : reconnaît déjà ${kws.map(esc).join(", ")}`, skip: true }); continue; }
+        const n = state.tx.filter((t) => classify(t) === null && fresh.some((k) => norm(t.label).includes(norm(k)))).length;
+        items.push({ text: `<b>${esc(c.name)}</b> reconnaît aussi ${fresh.map(esc).join(", ")}${n ? ` (${n} opération${n > 1 ? "s" : ""} à trier rangée${n > 1 ? "s" : ""})` : ""}`, run: () => { const cc = cat(c.id) || state.categories.find((x) => x.id === c.id); if (cc) for (const k of fresh) moveKw(k, cc); } });
+      } else if (cmd === "nom") {
+        const c = catByRef(tk[1], pending), name = (tk[2] || "").trim();
+        if (!c || !name) { bad("forme attendue : nom catégorie \"Nouveau nom\""); continue; }
+        if (c.name === name) { items.push({ text: `${esc(name)} : déjà ce nom`, skip: true }); continue; }
+        items.push({ text: `« ${esc(c.name)} » s'appelle maintenant <b>${esc(name)}</b>`, run: () => { const cc = cat(c.id); if (cc) cc.name = name; } });
       } else if (cmd === "renomme-prevu") {
         const from = (tk[1] || "").trim(), to = (tk[2] || "").trim();
         const ev = state.events.find((e) => norm(e.label) === norm(from));
