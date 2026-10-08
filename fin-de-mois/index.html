@@ -574,6 +574,8 @@ details.zero[open] > .rows { margin-top: 8px; }
 .tri .pick:active { background: var(--fill-2); }
 details.tri-more > .picks2 { margin-top: 8px; }
 .btn > svg { width: 20px; height: 20px; flex: none; }
+.row .name.more { color: var(--accent); font-size: 15px; }
+.hero .today { margin-top: -4px; }
 
 </style>
 
@@ -1280,6 +1282,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
   function renderAujourdhui() {
     const ym = ymNow();
     const r = reste();
+    const m = r.m;
     const dim = daysIn(ym);
     const dot = backupLate() || !storageOK;
     let html = `<header class="nav" id="nav"><div class="nav-l"></div><p class="nav-t" aria-hidden="true">Accueil</p><div class="nav-r"><button class="navbtn" data-act="go" data-v="reglages" aria-label="Réglages">${ICON.gear}${dot ? '<span class="dot"></span>' : ""}</button></div></header>
@@ -1296,33 +1299,44 @@ details.tri-more > .picks2 { margin-top: 8px; }
         <span class="big" id="freeNum">${eur0(shownFree ?? r.R)}</span>
         <span class="per"><i class="dot" aria-hidden="true"></i><span>${per}</span></span>
       </button>
+      ${dayLine(r)}
       <button class="btn primary addbtn" data-act="addOpen">${ICON.plus}Ajouter une dépense</button>
     </section>`;
-    html += billsDue();
     html += paydayAlert();
-    html += recentHtml();
+    html += budgetsHome(m);
+    html += aVenirHtml(m);
+    html += recentHtml(3);
     app.innerHTML = html;
     tweenFree(r.R);
   }
 
-  // Factures à payer bientôt : celles qu'on paie soi-même 3 jours avant, les prélèvements la veille
-  function billsDue() {
-    const ym = ymNow(), day = new Date().getDate(), dim = daysIn(ym);
-    const m = computeMonth(ym);
-    const out = [];
-    for (const l of m.lines) {
-      const c = l.c;
-      if (c.kind !== "fixe" || !c.active || l.has || !(l.plan > 0)) continue;
-      const due = Math.min(usualDay(c) || 0, dim);
-      if (!due) continue;
-      if (c.selfPay ? day < due - 3 : due < day || due > day + 1) continue;
-      out.push({ c, due, amount: l.plan, late: day > due });
-    }
-    out.sort((a, b) => a.due - b.due);
-    const when = (x) => x.late ? `à payer depuis le ${x.due}`
-      : x.c.selfPay ? (x.due === day ? "à payer aujourd'hui" : x.due === day + 1 ? "à payer demain" : `à payer le ${x.due}`)
-      : x.due === day ? "prélèvement aujourd'hui" : "prélèvement demain";
-    return out.slice(0, 3).map((x) => `<div class="callout bill ${x.late ? "bad" : x.c.selfPay ? "warn" : ""}" role="status"><span><b>${esc(x.c.name)}</b>, ${eur0(x.amount)}, ${when(x)}</span><button class="btn small ${x.late || x.c.selfPay ? "dark" : "secondary"}" data-act="markPaid" data-id="${esc(x.c.id)}">Payée</button></div>`).join("");
+  // Ce qui est parti aujourd'hui, face à ta part du jour
+  function dayLine(r) {
+    const sp = spentToday();
+    const allow = round2((r.R + sp) / Math.max(1, r.dl));
+    if (!(allow > 0) && !sp) return "";
+    const pct = allow > 0 ? Math.min(100, (sp / allow) * 100) : 100;
+    const over = sp > allow;
+    return `<div class="today${over ? " over" : ""}"><span>Aujourd'hui : <b>${eur0(sp)}</b> dépensés sur ${eur0(allow)}${over ? `, ${eur0(sp - allow)} de trop` : sp ? `, reste ${eur0(allow - sp)}` : ""}</span><i aria-hidden="true"><b style="width:${pct}%"></b></i></div>`;
+  }
+
+  // Tes budgets : les 4 catégories où tu dépenses le plus ce mois-ci
+  function budgetsHome(m) {
+    const list = m.lines.filter((l) => l.c.kind === "enveloppe" && l.plan > 0 && l.actual > 0).sort((a, b) => b.actual - a.actual).slice(0, 4);
+    if (!list.length) return "";
+    return `<section class="section"><div class="sh"><h2>Tes budgets</h2><button class="btn link" data-act="go" data-v="budget">Tout voir</button></div><div class="rows">${list.map((l) => envRow(l, m, false)).join("")}</div></section>`;
+  }
+
+  // À venir : les prochaines factures à cocher, puis ton matelas
+  function aVenirHtml(m) {
+    const dim = daysIn(m.ym), day = new Date().getDate();
+    const pins = fixedPins(m, dim).filter((p) => !p.paid && p.amount > 0 && p.c.active).sort((a, b) => (a.day || 99) - (b.day || 99));
+    let rows = pins.slice(0, 3).map((p) => billRow(p, false, day)).join("");
+    if (pins.length > 3) rows += `<button class="row" data-act="go" data-v="budget"><span class="name more">${pins.length - 3} autre${pins.length - 3 > 1 ? "s" : ""} facture${pins.length - 3 > 1 ? "s" : ""} à venir</span>${ICON.chev}</button>`;
+    const g = queueState().find((q) => q.rest > 0);
+    if (g) rows += `<button class="row" data-act="go" data-v="epargne">${tileRaw(FAM.epargne.color, "lock")}<span class="name">${esc(g.g.name)}</span><span class="amt">${eur0(g.have)}<span class="tag"> sur ${eur0(g.g.target)}</span></span><div class="bar" aria-hidden="true"><i style="width:${g.pct}%;background:${FAM.epargne.color}"></i></div><span class="sub">${g.eta ? `Rempli vers ${monthName(g.eta)}` : "Indique ton épargne par mois pour avoir une date"}</span></button>`;
+    if (!rows) return "";
+    return `<section class="section"><div class="sh"><h2>À venir</h2><span>${pins.length ? `${eur0(pins.reduce((a, p) => a + p.amount, 0))} de factures` : "factures payées"}</span></div><div class="rows">${rows}</div></section>`;
   }
 
   const dShort = (iso) => { const [, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS_S[m - 1]}`; };
@@ -1343,8 +1357,8 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const sub = [name === cn ? (c ? "" : "Pas reconnue") : cn, withDay ? relDay(t.date) : ""].filter(Boolean).join(" · ");
     return `<button class="row" data-act="openTx" data-id="${esc(t.id)}">${c ? tile(c) : tileRaw("#8E8E93", "question")}<span class="name">${esc(name)}</span><span class="amt">${eur(-t.amount)}</span><span class="sub">${esc(cap(sub))}</span></button>`;
   }
-  function recentHtml() {
-    const list = state.tx.filter(isDaily).sort((a, b) => (a.date !== b.date ? (a.date < b.date ? 1 : -1) : String(txTime(b) || "").localeCompare(String(txTime(a) || "")))).slice(0, 5);
+  function recentHtml(n) {
+    const list = state.tx.filter(isDaily).sort((a, b) => (a.date !== b.date ? (a.date < b.date ? 1 : -1) : String(txTime(b) || "").localeCompare(String(txTime(a) || "")))).slice(0, n || 5);
     if (!list.length) return `<section class="section"><div class="sh"><h2>Dernières dépenses</h2></div><p class="hint">Rien pour l'instant. Touche « Ajouter une dépense » à chaque achat, ou importe ton relevé depuis les réglages.</p></section>`;
     return `<section class="section"><div class="sh"><h2>Dernières dépenses</h2><button class="btn link" data-act="opsAll" data-from="aujourdhui">Tout voir</button></div><div class="rows">${list.map((t) => dailyRow(t, true)).join("")}</div></section>`;
   }
@@ -1980,43 +1994,18 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const dim = daysIn(ym), day = past ? dim + 1 : new Date().getDate();
     const pins = fixedPins(m, dim).filter((p) => p.amount > 0 || p.paid).sort((a, b) => (a.day || 99) - (b.day || 99));
     const paidN = pins.filter((p) => p.paid).length;
-    const billRow = (p) => {
-      const c = p.c;
-      const late = !past && !p.paid && p.day && day > p.day;
-      const sub = p.paid ? `${p.marked ? "Cochée payée" : "Payée"} le ${p.day}`
-        : !c.active ? "Pas comptée"
-        : past ? "Pas vue ce mois-là"
-        : !p.day ? "Date pas encore connue"
-        : late ? (c.selfPay ? `À payer depuis le ${p.day}` : `Prévue le ${p.day}, pas encore vue`)
-        : `${c.selfPay ? "À payer" : "Prélèvement"} le ${p.day}`;
-      const chk = p.paid
-        ? (p.marked && !past ? `<button class="chk on" data-act="unmarkPaid" data-id="${esc(c.id)}" aria-label="${esc(c.name)} : payée. Remettre à payer">${ICON.ringok}</button>` : `<span class="chk on" role="img" aria-label="Payée">${ICON.ringok}</span>`)
-        : !past && c.active ? `<button class="chk" data-act="markPaid" data-id="${esc(c.id)}" aria-label="Cocher ${esc(c.name)} comme payée">${ICON.ring}</button>`
-        : `<span class="chk" aria-hidden="true">${ICON.ring}</span>`;
-      return `<div class="row bill">${chk}<button class="billmain" data-act="openCat" data-id="${esc(c.id)}"><span class="name">${esc(c.name)}</span><span class="amt">${eur(p.amount)}</span><span class="sub ${late && c.selfPay ? "badt" : ""}">${sub}</span></button></div>`;
-    };
-    if (pins.length) html += `<section class="section"><div class="sh"><h2>Factures</h2><span>${paidN} payée${paidN > 1 ? "s" : ""} sur ${pins.length}</span></div><div class="rows">${pins.map(billRow).join("")}</div>${past ? "" : `<p class="hint">Touche le rond quand une facture est payée. Le relevé importé coche les prélèvements tout seul.</p>`}</section>`;
+    if (pins.length) html += `<section class="section"><div class="sh"><h2>Factures</h2><span>${paidN} payée${paidN > 1 ? "s" : ""} sur ${pins.length}</span></div><div class="rows">${pins.map((p) => billRow(p, past, day)).join("")}</div>${past ? "" : `<p class="hint">Touche le rond quand une facture est payée. Le relevé importé coche les prélèvements tout seul.</p>`}</section>`;
 
     // 3. Quotidien : une barre par catégorie, les plus dépensées en haut
     const envL = m.lines.filter((l) => l.c.kind === "enveloppe" && (l.c.active || l.actual !== 0));
     const spentL = envL.filter((l) => l.actual > 0).sort((a, b) => b.actual - a.actual);
     const zeroL = envL.filter((l) => !(l.actual > 0));
-    const envRow = (l) => {
-      const c = l.c, b = l.plan, over = b > 0 && l.actual > b;
-      const pc = past ? null : pace(m, l);
-      const fast = !over && b > 0 && pc && pc > b * 1.05;
-      const near = !over && b > 0 && (fast || l.actual >= b * (state.settings.alertPct || 0.8));
-      const w = b > 0 ? Math.min(100, (l.actual / b) * 100) : 0;
-      const st = b > 0 ? `<span class="st ${over ? "over" : near ? "near" : ""}">${eur0(l.actual)} sur ${eur0(b)}</span>` : `<span class="st">${eur0(l.actual)}</span>`;
-      const sub = over ? `<span class="sub badt">${eur0(l.actual - b)} de trop</span>` : fast ? `<span class="sub warnt">À ce rythme : ${eur0(pc)} à la fin du mois</span>` : b > 0 ? "" : `<span class="sub">Pas de budget prévu</span>`;
-      return `<button class="row env" data-act="openCat" data-id="${esc(c.id)}">${tile(c)}<span class="name">${esc(c.name)}</span>${st}${b > 0 ? `<div class="bar" aria-hidden="true"><i class="${over ? "over" : near ? "near" : "done"}" style="width:${w}%"></i></div>` : ""}${sub}</button>`;
-    };
     const planSum = round2(envL.reduce((a, l) => a + l.plan, 0));
     const autre = m.uncl > 0 ? `<button class="row" data-act="opsAutre">${tileRaw("#8E8E93", "question")}<span class="name">Autre</span><span class="st">${eur0(m.uncl)}</span><span class="sub">${m.unclCount} dépense${m.unclCount > 1 ? "s" : ""} que l'appli n'a pas reconnue${m.unclCount > 1 ? "s" : ""}. Touche pour les ranger.</span></button>` : "";
     if (envL.length || autre) {
       html += `<section class="section"><div class="sh"><h2>Quotidien</h2><span>${eur0(spentD)}${planSum > 0 ? ` sur ${eur0(planSum)}` : ""}</span></div>
-        ${spentL.length || autre ? `<div class="rows">${spentL.map(envRow).join("")}${autre}</div>` : ""}
-        ${zeroL.length ? `<details class="zero"${spentL.length || autre ? "" : " open"}><summary><span>Rien dépensé${spentL.length ? "" : " pour l'instant"} : ${zeroL.map((l) => esc(shortName(l.c).toLowerCase())).join(", ")}</span>${ICON.chev}</summary><div class="rows">${zeroL.map(envRow).join("")}</div></details>` : ""}
+        ${spentL.length || autre ? `<div class="rows">${spentL.map((l) => envRow(l, m, past)).join("")}${autre}</div>` : ""}
+        ${zeroL.length ? `<details class="zero"${spentL.length || autre ? "" : " open"}><summary><span>Rien dépensé${spentL.length ? "" : " pour l'instant"} : ${zeroL.map((l) => esc(shortName(l.c).toLowerCase())).join(", ")}</span>${ICON.chev}</summary><div class="rows">${zeroL.map((l) => envRow(l, m, past)).join("")}</div></details>` : ""}
       </section>`;
     }
 
@@ -2030,6 +2019,35 @@ details.tri-more > .picks2 { margin-top: 8px; }
     html += `<div class="rows"><button class="row" data-act="opsAll" data-from="budget"><span class="name">Toutes les opérations de ${MONTHS[Number(ym.slice(5)) - 1]}</span>${ICON.chev}</button></div>`;
     if (!past) html += `<div class="btn-row"><button class="btn link" data-act="addCatAsk">Ajouter une catégorie</button></div>`;
     app.innerHTML = html;
+  }
+
+  // Une facture : un rond à cocher, le nom, le montant, le jour
+  function billRow(p, past, day) {
+    const c = p.c;
+    const late = !past && !p.paid && p.day && day > p.day;
+    const sub = p.paid ? `${p.marked ? "Cochée payée" : "Payée"} le ${p.day}`
+      : !c.active ? "Pas comptée"
+      : past ? "Pas vue ce mois-là"
+      : !p.day ? "Date pas encore connue"
+      : late ? (c.selfPay ? `À payer depuis le ${p.day}` : `Prévue le ${p.day}, pas encore vue`)
+      : `${c.selfPay ? "À payer" : "Prélèvement"} ${p.day === day ? "aujourd'hui" : p.day === day + 1 ? "demain" : `le ${p.day}`}`;
+    const chk = p.paid
+      ? (p.marked && !past ? `<button class="chk on" data-act="unmarkPaid" data-id="${esc(c.id)}" aria-label="${esc(c.name)} : payée. Remettre à payer">${ICON.ringok}</button>` : `<span class="chk on" role="img" aria-label="Payée">${ICON.ringok}</span>`)
+      : !past && c.active ? `<button class="chk" data-act="markPaid" data-id="${esc(c.id)}" aria-label="Cocher ${esc(c.name)} comme payée">${ICON.ring}</button>`
+      : `<span class="chk" aria-hidden="true">${ICON.ring}</span>`;
+    return `<div class="row bill">${chk}<button class="billmain" data-act="openCat" data-id="${esc(c.id)}"><span class="name">${esc(c.name)}</span><span class="amt">${eur(p.amount)}</span><span class="sub ${late && c.selfPay ? "badt" : ""}">${sub}</span></button></div>`;
+  }
+
+  // Une catégorie du quotidien : dépensé sur prévu, barre verte, orange ou rouge
+  function envRow(l, m, past) {
+    const c = l.c, b = l.plan, over = b > 0 && l.actual > b;
+    const pc = past ? null : pace(m, l);
+    const fast = !over && b > 0 && pc && pc > b * 1.05;
+    const near = !over && b > 0 && (fast || l.actual >= b * (state.settings.alertPct || 0.8));
+    const w = b > 0 ? Math.min(100, (l.actual / b) * 100) : 0;
+    const st = b > 0 ? `<span class="st ${over ? "over" : near ? "near" : ""}">${eur0(l.actual)} sur ${eur0(b)}</span>` : `<span class="st">${eur0(l.actual)}</span>`;
+    const sub = over ? `<span class="sub badt">${eur0(l.actual - b)} de trop</span>` : fast ? `<span class="sub warnt">À ce rythme : ${eur0(pc)} à la fin du mois</span>` : b > 0 ? "" : `<span class="sub">Pas de budget prévu</span>`;
+    return `<button class="row env" data-act="openCat" data-id="${esc(c.id)}">${tile(c)}<span class="name">${esc(c.name)}</span>${st}${b > 0 ? `<div class="bar" aria-hidden="true"><i class="${over ? "over" : near ? "near" : "done"}" style="width:${w}%"></i></div>` : ""}${sub}</button>`;
   }
 
   function renderCategorie() {
