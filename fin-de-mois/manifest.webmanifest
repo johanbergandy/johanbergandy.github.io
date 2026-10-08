@@ -3,7 +3,7 @@
   "short_name": "Fin de mois",
   "description": "Ce qu'il te restera à la fin du mois, et ce que change une dépense avant de la faire.",
   "lang": "fr",
-  "start_url": "./#mois",
+  "start_url": "./#aujourdhui",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0F5C45",
