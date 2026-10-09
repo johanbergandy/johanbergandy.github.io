@@ -63,23 +63,34 @@ h1, p { margin: 0; }
 
 /* ============ Aujourd'hui ============ */
 .home { height: 100%; display: flex; flex-direction: column; position: relative; }
-.hero { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 8px 24px 0; }
+.hero { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 8px 20px 12px; }
 .hero .date { font-size: 15px; font-weight: 600; color: var(--muted); }
-.gauge { position: relative; width: min(330px, 100%); aspect-ratio: 330 / 196; }
-.gauge svg { display: block; width: 100%; height: 100%; }
-.gauge .fill { transition: stroke-dasharray .6s var(--ease); }
-.gauge .in { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.gauge .lab { font-size: 15px; font-weight: 500; color: var(--muted); }
+.calc4 { width: 100%; background: var(--surface); border-radius: 20px; padding: 4px 18px 0; display: flex; flex-direction: column; }
+.lines { display: flex; flex-direction: column; width: 100%; padding: 0; border: 0; background: transparent; text-align: left; }
+.ln { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 4px 0; }
+.ln + .ln { border-top: 1px solid var(--line); }
+.ln .sg { flex: none; width: 14px; font-size: 18px; font-weight: 700; color: var(--muted); text-align: center; }
+.ln .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ln .nm b { font-size: 16px; font-weight: 600; }
+.ln .nm small { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ln .am { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.total4 { border-top: 2px solid var(--ink); padding: 12px 0 14px; display: flex; flex-direction: column; gap: 2px; }
+.total4.first { border-top: 0; }
+.total4 .lab { font-size: 15px; font-weight: 600; }
+.total4 .big { font-size: 52px; line-height: 56px; }
+.total4 .big .dec { font-size: 26px; }
+.total4 .big.long { font-size: 46px; }
+.total4 .per { font-size: 16px; font-weight: 600; color: var(--muted); }
+.total4.over .lab, .total4.over .big { color: var(--over); }
 .big { font-family: var(--num); font-weight: 700; font-size: 58px; line-height: 60px; letter-spacing: -1px; white-space: nowrap; }
 .big .dec { font-size: 28px; letter-spacing: 0; }
 .big.long { font-size: 48px; }
 .big.long .dec { font-size: 24px; }
-.gauge .sub { font-size: 14px; color: var(--muted); }
 .over .lab, .over .big { color: var(--over); }
-.perday { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.perday .v { font-family: var(--num); font-size: 28px; font-weight: 600; line-height: 32px; }
-.perday .s { font-size: 15px; color: var(--muted); }
-
+.out2 { border-radius: 16px; background: var(--bg); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.out2 .big { font-size: 36px; line-height: 40px; }
+.out2 .big .dec { font-size: 20px; }
+.out2 span { font-size: 15px; color: var(--muted); }
 .compact { display: none; padding: 4px 24px 16px; flex-direction: column; gap: 12px; }
 .compact .top { display: flex; justify-content: space-between; align-items: flex-end; }
 .compact .lab { font-size: 14px; font-weight: 500; color: var(--muted); }
@@ -128,13 +139,7 @@ h1, p { margin: 0; }
 .sec b { font-size: 15px; font-weight: 600; }
 .detail .row { min-height: 48px; }
 .detail .row .n, .detail .row .a { font-size: 15px; }
-.revo { display: flex; flex-direction: column; gap: 2px; width: 100%; margin-top: 6px; padding: 10px 14px; border: 0; border-radius: 14px; background: var(--bg); text-align: left; }
-.revo .t { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.revo .t b { font-size: 15px; font-weight: 600; }
-.revo .t span { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.revo p { font-size: 13px; line-height: 17px; color: var(--muted); }
-@media (max-height: 740px) { .peek .row:nth-child(n+3) { display: none; } .hero { gap: 16px; } }
-@media (max-height: 640px) { .peek .row:nth-child(n+2) { display: none; } .gauge { width: min(280px, 100%); } .big { font-size: 48px; line-height: 52px; } }
+@media (max-height: 760px) { .peek .row:nth-child(n+2) { display: none; } .hero { justify-content: flex-start; } .ln { min-height: 46px; } .total4 .big { font-size: 44px; line-height: 48px; } }
 
 /* ============ Pages Et si, Mon budget ============ */
 .page { padding: 20px 20px 28px; display: flex; flex-direction: column; gap: 16px; min-height: 100%; }
@@ -308,7 +313,7 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
   /* ================= Outils ================= */
   const KEY = "fin-de-mois.v9";
   const APP = "fin-de-mois";
-  const VERSION = "9.0";
+  const VERSION = "9.1";
   const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
   const MOIS_C = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
   const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
@@ -353,14 +358,15 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
   const ymOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
   const ymName = (ym) => MOIS[Number(ym.slice(5)) - 1];
 
-  function payDate(y, m) { const dim = new Date(y, m + 1, 0).getDate(); return new Date(y, m, Math.min(S.payDay, dim)); }
+  function payDate(y, m, pd) { const dim = new Date(y, m + 1, 0).getDate(); return new Date(y, m, Math.min(pd || S.payDay, dim)); }
   // Un mois va de la paie à la veille de la paie suivante
-  function periodOf(d) {
-    let s = payDate(d.getFullYear(), d.getMonth());
-    if (d < s) s = payDate(d.getFullYear(), d.getMonth() - 1);
-    const next = payDate(s.getFullYear(), s.getMonth() + 1);
+  function periodOf(d, pd) {
+    pd = pd || S.payDay;
+    let s = payDate(d.getFullYear(), d.getMonth(), pd);
+    if (d < s) s = payDate(d.getFullYear(), d.getMonth() - 1, pd);
+    const next = payDate(s.getFullYear(), s.getMonth() + 1, pd);
     const end = addD(next, -1);
-    return { start: s, end, next, days: dDays(next, s), s: iso(s), e: iso(end), key: iso(s), ym: ymOf(S.payDay > 15 ? end : s) };
+    return { start: s, end, next, days: dDays(next, s), s: iso(s), e: iso(end), key: iso(s), ym: ymOf(pd > 15 ? end : s) };
   }
   const cur = () => periodOf(today());
   function relDay(isoDate) {
@@ -372,6 +378,8 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
   }
 
   /* ================= Données ================= */
+  // Ce que le relevé du 9 octobre 2026 a appris sur tes commerçants
+  const SEED_RULES = { "mepro stat dac": "essence", "thimont": "essence", "mepro": "courses", "le nemrod": "restos", "tout va bien": "restos", "bmbz": "restos", "le cafe du bonhe": "restos" };
   function fresh() {
     return {
       v: 9, payDay: 30, salary: 1972, aside: 350, livret: 1500,
@@ -381,6 +389,7 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
         { id: "salle", name: "Salle de sport à Meaux", amount: 30, day: null, note: "toutes les 4 semaines" },
         { id: "gmf", name: "Assurance GMF", amount: 48, day: null, note: "" },
         { id: "revolut", name: "Revolut", amount: 19, day: null, note: "" },
+        { id: "abos", name: "Abonnements", amount: 6, day: null, note: "OD3ON" },
       ],
       cats: [
         { id: "courses", name: "Courses", budget: 300 },
@@ -399,14 +408,55 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
         { id: "captur", name: "Renault Captur", monthly: 317, note: "" },
         { id: "formentor", name: "Cupra Formentor", monthly: 418, note: "assurance comprise" },
       ],
-      expenses: [], paid: {}, asideDone: {}, carry: 0, balanceSet: false,
-      cur: null, closed: [], setupDone: false, setupAt: null, setupKey: null, csvKeys: [], ignoredKeys: [],
+      expenses: [], paid: {}, asideDone: {}, got: {}, doneUp: {}, early: null, bal: null, balAt: null, rules: Object.assign({}, SEED_RULES),
+      cur: null, setupDone: false, setupAt: null, csvKeys: [], ignoredKeys: [], model: 2,
     };
   }
   function valid(s) { return s && typeof s === "object" && s.v === 9 && Array.isArray(s.fixed) && Array.isArray(s.cats) && Array.isArray(s.expenses) && typeof s.salary === "number"; }
+  // De la version 9.0 (on partait du budget) à la 9.1 (on part du solde du compte) : rien n'est perdu
+  function migrate(s) {
+    if (s.model === 2) return s;
+    const P = periodOf(today(), s.payDay || 30);
+    if (s.setupDone) {
+      const fixe = sum(s.fixed, (f) => f.amount);
+      const ex = (s.upcoming || []).filter((u) => u.ym === P.ym && u.amount);
+      const res = ex.filter((u) => u.amount < 0).map((u) => ({ id: u.id, amount: -u.amount, spent: 0 }));
+      let normal = 0;
+      for (const e of s.expenses) { if (e.date < P.s || e.date > P.e) continue; const r = res.find((r) => r.id === e.cat); if (r) r.spent += e.amount; else normal += e.amount; }
+      const aDep = s.salary - fixe - s.aside + sum(ex.filter((u) => u.amount > 0), (u) => u.amount) - sum(res, (r) => r.amount);
+      const reste = aDep - normal - sum(res, (r) => Math.max(0, r.spent - r.amount));
+      const wasPaid = (f) => {
+        const t = ((s.paid || {})[P.key] || {})[f.id];
+        if (t === true || t === false) return t;
+        if (!f.day) return false;
+        for (let d = P.start; d <= P.end; d = addD(d, 1)) { const dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); if (d.getDate() === Math.min(f.day, dim)) return d <= today(); }
+        return false;
+      };
+      const paid = {}; for (const f of s.fixed) if (wasPaid(f)) paid[f.id] = true;
+      const unpaid = sum(s.fixed.filter((f) => !paid[f.id]), (f) => f.amount);
+      const pending = (s.asideDone || {})[P.key] ? 0 : s.aside;
+      // le solde que l'ancienne version avait en tête
+      s.bal = s.balanceSet ? r2(reste + unpaid + pending + sum(res, (r) => Math.max(0, r.amount - r.spent)) + (s.carry || 0)) : null;
+      s.balAt = s.balanceSet ? iso(today()) : null;
+      // d'après le relevé du 9 octobre 2026 : EDF et l'abonnement OD3ON sont déjà passés ce mois-ci
+      if (P.key === "2026-09-30") { paid.edf = true; paid.abos = true; }
+      s.paid = { [P.key]: paid };
+      s.asideDone = (s.asideDone || {})[P.key] ? { [P.key]: true } : {};
+      s.got = { [P.key]: { salary: true } };
+    } else { s.paid = {}; s.asideDone = {}; s.got = {}; s.bal = null; s.balAt = null; }
+    s.expenses = s.expenses.filter((e) => e.cat !== "avant");
+    for (const e of s.expenses) if (e.src === "manuel" && e.note === "Oubli") { e.src = "solde"; e.cat = "sansdetail"; e.note = ""; }
+    if (!s.fixed.some((f) => f.id === "abos" || /abonnement/i.test(f.name))) s.fixed.push({ id: "abos", name: "Abonnements", amount: 6, day: null, note: "OD3ON" });
+    s.rules = Object.assign({}, SEED_RULES, s.rules || {});
+    s.doneUp = {}; s.early = null;
+    delete s.carry; delete s.balanceSet; delete s.closed; delete s.setupKey;
+    s.model = 2;
+    return s;
+  }
   function repair(s) {
+    migrate(s);
     const d = fresh();
-    for (const k of Object.keys(d)) if (s[k] === undefined || s[k] === null && !["cur", "setupAt", "setupKey"].includes(k)) s[k] = d[k];
+    for (const k of Object.keys(d)) if (s[k] === undefined || s[k] === null && !["cur", "setupAt", "bal", "balAt", "early"].includes(k)) s[k] = d[k];
     return s;
   }
   let storageOK = true;
@@ -420,81 +470,61 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
     try { if (navigator.storage && navigator.storage.persist && !save.asked) { save.asked = true; navigator.storage.persist().catch(() => {}); } } catch (e) {}
   }
   const catName = (id, P) => {
-    if (id === "avant") return "Avant l'installation";
+    if (id === "sansdetail") return "Sans détail";
     const c = S.cats.find((c) => c.id === id); if (c) return c.name;
     const u = S.upcoming.find((u) => u.id === id && u.amount < 0 && (!P || u.ym === P.ym)); if (u) return u.name;
     return "Autres";
   };
 
   /* ================= Le calcul ================= */
-  // sim : { skip: id d'une dépense à ignorer, add: dépense en plus } pour répondre à « et si »
-  function compute(P, sim) {
+  // Tout part du solde du compte. On y ajoute ce qui doit encore arriver, on en retire ce qui doit encore partir.
+  const flags = (P) => ({ paid: S.paid[P.key] || {}, got: S.got[P.key] || {}, done: S.doneUp[P.key] || {} });
+  const catKey = (id, P) => (id === "sansdetail" || S.cats.some((c) => c.id === id) || S.upcoming.some((u) => u.id === id && u.amount < 0 && u.ym === P.ym) ? id : "autres");
+  // minus : une somme à retirer en plus, pour répondre à « et si »
+  function compute(P, minus) {
+    const F = flags(P);
     const fixe = r2(sum(S.fixed, (f) => f.amount));
-    const base = r2(S.salary - fixe - S.aside);
+    const base = r2(S.salary - fixe - S.aside);                    // le plan d'un mois ordinaire
+    const list = S.expenses.filter((e) => e.date >= P.s && e.date <= P.e);
+    const byCat = {}; for (const e of list) { const k = catKey(e.cat, P); byCat[k] = r2((byCat[k] || 0) + e.amount); }
+    const total = r2(sum(list, (e) => e.amount));
     const ex = S.upcoming.filter((u) => u.ym === P.ym && u.amount);
-    const inc = r2(sum(ex.filter((u) => u.amount > 0), (u) => u.amount));
-    const res = ex.filter((u) => u.amount < 0).map((u) => ({ id: u.id, name: u.name, amount: -u.amount, spent: 0 }));
-    const aDep = r2(base + inc - sum(res, (r) => r.amount));
-    let list = S.expenses.filter((e) => e.date >= P.s && e.date <= P.e);
-    if (sim && sim.skip) list = list.filter((e) => e.id !== sim.skip);
-    if (sim && sim.add) list = list.concat([sim.add]);
-    const byCat = {}; let normal = 0;
-    for (const e of list) {
-      const r = res.find((r) => r.id === e.cat);
-      if (r) { r.spent = r2(r.spent + e.amount); continue; }
-      const c = e.cat === "avant" || S.cats.some((c) => c.id === e.cat) ? e.cat : "autres";
-      byCat[c] = r2((byCat[c] || 0) + e.amount); normal += e.amount;
-    }
-    const spent = r2(normal + sum(res, (r) => Math.max(0, r.spent - r.amount)));   // ce qui se retire de « à dépenser »
-    const total = r2(normal + sum(res, (r) => r.spent));                           // tout ce qui est sorti
-    const covered = res.filter((r) => r.spent > 0).map((r) => ({ name: r.name, v: Math.min(r.spent, r.amount) }));
-    const reste = r2(aDep - spent);
+    const coming = [];                                              // ce qui doit encore arriver sur le compte
+    if (!F.got.salary) coming.push({ id: "salary", name: "Salaire", amount: S.salary });
+    for (const u of ex) if (u.amount > 0 && !F.got[u.id]) coming.push({ id: u.id, name: u.name, amount: u.amount });
+    const unpaid = S.fixed.filter((f) => !F.paid[f.id]);            // les factures qui doivent encore partir
+    const bills = r2(sum(unpaid, (f) => f.amount));
+    const livret = S.asideDone[P.key] ? 0 : S.aside;                // ce qui doit encore aller sur le livret
+    const kept = ex.filter((u) => u.amount < 0 && !F.done[u.id]).map((u) => ({ id: u.id, name: u.name, amount: r2(Math.max(0, -u.amount - (byCat[u.id] || 0))) })).filter((k) => k.amount > 0);
+    const early = S.early === iso(P.next) ? S.salary : 0;           // la paie du mois suivant, arrivée en avance
+    const known = typeof S.bal === "number";
+    const bal = known ? S.bal : 0;
+    const vivre = r2(bal + sum(coming, (k) => k.amount) - bills - livret - sum(kept, (k) => k.amount) - early - (minus || 0));
     const t = today();
-    const left = Math.max(1, dDays(P.end, t) + 1);              // jours restants, aujourd'hui compris
-    const elapsed = Math.max(1, dDays(t, P.start) + 1);         // jours écoulés, aujourd'hui compris
-    const perDay = Math.floor(Math.max(0, reste) / left);
-    const rate = spent / elapsed;
-    const proj = reste - rate * (left - 1);                     // ce qui resterait à la fin, au même rythme
-    const autres = r2(aDep - sum(S.cats, (c) => c.budget));
-    return { fixe, base, inc, res, aDep, list, byCat, spent, total, covered, reste, left, elapsed, perDay, rate, proj, autres, basePerDay: Math.floor(Math.max(0, base) / P.days) };
+    const left = Math.max(1, dDays(P.end, t) + 1);                  // jours restants, aujourd'hui compris
+    const elapsed = Math.max(1, dDays(t, P.start) + 1);
+    const perDay = Math.floor(Math.max(0, vivre) / left);
+    return { fixe, base, list, byCat, total, coming, unpaid, bills, livret, kept, early, known, bal, vivre, left, elapsed, perDay, basePerDay: Math.floor(Math.max(0, base) / P.days) };
   }
+  // Essayer un changement sans rien enregistrer : on modifie, on calcule, on remet tout en place
+  function simulate(mut, fn) {
+    const keys = ["expenses", "bal", "paid", "got", "doneUp", "asideDone", "early"];
+    const saved = {}; for (const k of keys) saved[k] = S[k];
+    for (const k of ["paid", "got", "doneUp", "asideDone"]) S[k] = JSON.parse(JSON.stringify(S[k]));
+    S.expenses = S.expenses.slice();
+    try { mut(); return fn(); } finally { for (const k of keys) S[k] = saved[k]; }
+  }
+  // Une dépense saisie à la main fait baisser le solde connu, sauf si elle date d'avant la dernière mise à jour du solde
+  const hits = (date) => typeof S.bal === "number" && (!S.balAt || date >= S.balAt);
 
-  // Charges fixes : payée si cochée, ou si son jour du mois est passé
-  function dueDate(f, P) {
-    if (!f.day) return null;
-    for (let d = P.start; d <= P.end; d = addD(d, 1)) {
-      const dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-      if (d.getDate() === Math.min(f.day, dim)) return d;
-    }
-    return null;
-  }
-  function isPaid(f, P) {
-    const t = (S.paid[P.key] || {})[f.id];
-    if (t === true || t === false) return t;
-    const d = dueDate(f, P);
-    return !!d && d <= today();
-  }
-  function expected(P, c) {
-    const unpaid = S.fixed.filter((f) => !isPaid(f, P));
-    const pending = S.asideDone[P.key] ? 0 : S.aside;
-    const kept = c.res.filter((r) => r.amount - r.spent > 0);
-    const total = r2(c.reste + sum(unpaid, (f) => f.amount) + pending + sum(kept, (r) => r.amount - r.spent) + S.carry);
-    return { total, unpaid, pending, kept };
-  }
-
-  // Changement de mois : ce qui reste (ou manque) sur le compte est gardé en mémoire pour le solde attendu
+  // Changement de mois : les coches repartent à zéro
   function ensurePeriod() {
     const P = cur();
-    if (S.cur && S.cur !== P.key && S.setupDone) {
-      const old = periodOf(pISO(S.cur));
-      const c = compute(old);
-      S.closed.push({ key: old.key, ym: old.ym, s: old.s, e: old.e, aDep: c.aDep, spent: c.spent, reste: c.reste });
-      if (S.closed.length > 36) S.closed = S.closed.slice(-36);
-      S.carry = r2(S.carry + c.reste + (S.asideDone[old.key] ? 0 : S.aside) + sum(c.res, (r) => Math.max(0, r.amount - r.spent)));
-      const keep = {}; if (S.paid[P.key]) keep[P.key] = S.paid[P.key]; S.paid = keep;
-      const keepA = {}; if (S.asideDone[P.key]) keepA[P.key] = true; S.asideDone = keepA;
+    if (S.cur !== P.key) {
+      for (const k of ["paid", "asideDone", "got", "doneUp"]) { const keep = {}; if (S[k][P.key]) keep[P.key] = S[k][P.key]; S[k] = keep; }
+      if (S.early === P.key) { S.got[P.key] = Object.assign({}, S.got[P.key], { salary: true }); S.early = null; }
+      S.cur = P.key; save();
     }
-    if (S.cur !== P.key) { S.cur = P.key; save(); }
     return P;
   }
 
@@ -519,89 +549,73 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
   }
 
   /* ================= Aujourd'hui ================= */
-  const ARC = 449.25; // longueur du demi-cercle de la jauge
   function expRow(e, P) {
-    const who = e.note ? e.note : catName(e.cat, P);
-    const sub = e.note ? `${catName(e.cat, P)}, ${relDay(e.date)}` : cap(relDay(e.date));
+    const sd = e.cat === "sansdetail";
+    const who = sd ? "Sans détail" : e.note ? e.note : catName(e.cat, P);
+    const sub = sd ? `baisse de ton solde, ${relDay(e.date)}` : e.note ? `${catName(e.cat, P)}, ${relDay(e.date)}` : cap(relDay(e.date));
     return `<button type="button" class="row" data-act="edit" data-id="${e.id}"><span class="l"><span class="n">${esc(who)}</span><span class="d">${esc(sub)}</span></span><span class="a">${e2(e.amount)}</span></button>`;
   }
   const byRecent = (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (b.at || 0) - (a.at || 0));
+  const ln = (sign, name, sub, amount) => `<span class="ln"><span class="sg">${sign}</span><span class="nm"><b>${name}</b>${sub ? `<small>${sub}</small>` : ""}</span><span class="am">${amount}</span></span>`;
 
   function renderHome() {
     const P = cur(), c = compute(P), t = today();
-    const frac = c.aDep > 0 ? Math.max(0, Math.min(1, c.reste / c.aDep)) : 0;
-    const over = c.reste < 0;
-    const until = c.left === 1 ? "paie demain" : `jusqu'au ${dLong(P.end)}, paie le ${jour(P.next)}`;
-    const perV = over ? `De côté ce mois-ci${NB}: ${eA(Math.max(0, S.aside + c.reste))}` : c.left === 1 ? `${e0(c.perDay)} pour aujourd'hui` : `${e0(c.perDay)} par jour`;
-    const perS = over ? `au lieu de ${eA(S.aside)}` : until;
-    const real = c.list.filter((e) => e.cat !== "avant").sort(byRecent);
-    const since = `Dépensé depuis le ${dLong(P.start)}`;
-    const peek = real.length ? real.slice(0, 3).map((e) => expRow(e, P)).join("") : `<div class="empty">${c.byCat.avant ? "Dépensé avant l'installation de l'appli, sans détail. Tes prochaines dépenses s'afficheront ici." : `Aucune dépense saisie depuis le ${dLong(P.start)}.`}</div>`;
+    const real = c.list.slice().sort(byRecent);
+    const miss = c.vivre < 0;
+    const perDay = c.left === 1 ? `${e0(c.perDay)} pour aujourd'hui, paie demain` : `${e0(c.perDay)} par jour`;
+    const label = miss ? "Il te manque" : `Pour vivre jusqu'au ${dLong(P.end)}`;
+    const under = miss ? `pour payer tes factures${c.livret ? ` et mettre ${eA(c.livret)} sur ton livret` : ""}` : perDay;
 
-    // Détail : catégories
-    const rows = S.cats.map((k) => ({ name: k.name, v: c.byCat[k.id] || 0, b: k.budget }));
-    rows.push({ name: "Autres", v: c.byCat.autres || 0, b: c.autres });
-    for (const r of c.res) rows.push({ name: r.name, v: r.spent, b: r.amount });
-    const cats = rows.map((r) => {
-      const o = r.v > r.b + 0.004;
-      const w = r.b > 0 ? Math.min(100, (r.v / r.b) * 100) : r.v > 0 ? 100 : 0;
-      return `<div class="cat"><div class="t"><b>${esc(r.name)}</b><span class="${o ? "o" : ""}"><b>${e2(r.v)}</b> <span class="muted">sur ${eA(r.b)}</span></span></div><div class="bar"><i class="${o ? "o" : ""}" style="width:${w.toFixed(1)}%"></i></div></div>`;
-    }).join("");
-    const avant = c.byCat.avant ? `<button type="button" class="row" data-act="avant"><span class="l"><span class="n">Avant l'installation</span><span class="d">dépensé avant le ${dLong(pISO(S.setupAt || P.s))}, sans détail</span></span><span class="a">${e2(c.byCat.avant)}</span></button>` : "";
-    const last = real.length ? real.slice(0, 2).map((e) => expRow(e, P)).join("") : `<div class="empty">Aucune dépense saisie.</div>`;
+    // Les lignes du calcul, du solde vers ce qu'il reste pour vivre
+    const lines = [];
+    lines.push(ln("", "Sur ton compte", S.balAt ? `mis à jour ${relDay(S.balAt)}` : "", e2(c.bal)));
+    for (const k of c.coming) lines.push(ln("+", `${esc(k.name)} à venir`, "", eA(k.amount)));
+    lines.push(ln("−", "Factures à venir", c.unpaid.length ? c.unpaid.map((f) => esc(f.name)).join(", ") : "toutes passées", eA(c.bills)));
+    lines.push(ln("−", "Pour ton livret", c.livret ? "pas encore viré" : "déjà viré ce mois-ci", eA(c.livret)));
+    for (const k of c.kept) lines.push(ln("−", `Gardé pour ${esc(k.name)}`, "", eA(k.amount)));
+    if (c.early) lines.push(ln("−", "Paie du mois prochain", "déjà arrivée", eA(c.early)));
 
-    let revo;
-    if (S.balanceSet) {
-      const x = expected(P, c);
-      const parts = [];
-      parts.push(c.reste >= 0 ? `Les ${e2(c.reste)} qu'il te reste` : `Ton dépassement de ${e2(-c.reste)}`);
-      if (x.unpaid.length) parts.push(`plus ${eA(sum(x.unpaid, (f) => f.amount))} de fixe pas encore prélevés (${x.unpaid.map((f) => esc(f.name)).join(", ")})`);
-      if (x.pending) parts.push(`plus les ${eA(x.pending)} pas encore mis sur le livret`);
-      for (const r of x.kept) parts.push(`plus ${eA(r.amount - r.spent)} gardés pour ${esc(r.name)}`);
-      if (S.carry > 0.004) parts.push(`plus ${e2(S.carry)} déjà sur le compte avant ce mois`);
-      if (S.carry < -0.004) parts.push(`moins ${e2(-S.carry)} qui manquaient déjà avant ce mois`);
-      revo = `<button type="button" class="revo" data-act="revo"><span class="t"><b>Revolut devrait afficher</b><span>${e2(x.total)}</span></span><p>${parts.join(", ")}. Il affiche autre chose${NB}? Touche ici.</p></button>`;
-    } else {
-      revo = `<button type="button" class="revo" data-act="revo"><span class="t"><b>Comparer avec Revolut</b></span><p>Donne le solde de ton compte pour que l'appli te dise ce qu'il devrait afficher.</p></button>`;
-    }
+    // Détail : où est parti l'argent, puis les dernières dépenses
+    const rows = S.cats.map((k) => ({ name: k.name, v: c.byCat[k.id] || 0 }));
+    rows.push({ name: "Autres", v: c.byCat.autres || 0 });
+    for (const u of S.upcoming) if (u.amount < 0 && u.ym === P.ym && c.byCat[u.id]) rows.push({ name: u.name, v: c.byCat[u.id] });
+    if (c.byCat.sansdetail) rows.push({ name: "Sans détail", v: c.byCat.sansdetail });
+    const max = Math.max(1, ...rows.map((r) => r.v));
+    const cats = rows.filter((r) => r.v > 0).sort((a, b) => b.v - a.v).map((r) => `<div class="cat"><div class="t"><b>${esc(r.name)}</b><span><b>${e2(r.v)}</b></span></div><div class="bar"><i style="width:${((r.v / max) * 100).toFixed(1)}%"></i></div></div>`).join("");
+    const none = `<div class="empty">L'appli ne connaît encore aucune dépense depuis le ${dLong(P.start)}. Importe ton relevé Revolut dans Mon budget, ou ajoute-les à la main.</div>`;
+    const peek = real.length ? real.slice(0, 2).map((e) => expRow(e, P)).join("") : none;
+    const last = real.slice(0, 4).map((e) => expRow(e, P)).join("");
 
     view.innerHTML = `
 <div class="home" data-open="${homeOpen ? 1 : 0}">
-  <div class="compact${over ? " over" : ""}">
+  <div class="compact${miss ? " over" : ""}">
     <div class="top">
-      <div><div class="lab">${over ? "Tu as dépassé de" : "Il te reste"}</div>${big(Math.abs(c.reste))}</div>
-      <div class="r"><div class="v">${perV}</div><div class="s">${over ? perS : c.left === 1 ? "paie demain" : "jusqu'au " + dLong(P.end)}</div></div>
+      <div><div class="lab">${label}</div>${c.known ? big(Math.abs(c.vivre)) : ""}</div>
+      ${c.known && !miss ? `<div class="r"><div class="v">${e0(c.perDay)} par jour</div></div>` : ""}
     </div>
-    <div class="bar" role="img" aria-label="${over ? "Budget dépassé" : `Il te reste ${e0(Math.round(c.reste))} sur ${e0(Math.round(c.aDep))}`}"><i style="width:${(frac * 100).toFixed(1)}%"></i></div>
   </div>
   <div class="hero">
     <div class="date">${cap(JOURS[t.getDay()])} ${dLong(t)}</div>
-    <div class="gauge${over ? " over" : ""}">
-      <svg viewBox="0 0 330 196" fill="none" role="img" aria-label="${over ? "Budget dépassé" : `Il te reste ${e0(Math.round(c.reste))} sur ${e0(Math.round(c.aDep))}`}">
-        <path d="M 22 176 A 143 143 0 0 1 308 176" stroke="#D5DEE0" stroke-width="22" stroke-linecap="round"/>
-        ${frac > 0.002 ? `<path class="fill" d="M 22 176 A 143 143 0 0 1 308 176" stroke="#0A6C87" stroke-width="22" stroke-linecap="round" stroke-dasharray="${(frac * ARC).toFixed(2)} ${ARC + 30}"/>` : ""}
-      </svg>
-      <div class="in">
-        <div class="lab">${over ? "Tu as dépassé de" : "Il te reste"}</div>
-        ${big(Math.abs(c.reste))}
-        <div class="sub">${over ? `pris sur tes ${eA(S.aside)} de côté` : `sur ${eA(c.aDep)} pour le mois`}</div>
-      </div>
+    ${c.known ? `
+    <div class="calc4">
+      <button type="button" class="lines" data-act="compte" aria-label="Mettre à jour mon solde et ce qui est déjà passé">${lines.join("")}</button>
+      <div class="total4${miss ? " over" : ""}"><div class="lab">${label}</div>${big(Math.abs(c.vivre))}<div class="per">${under}</div></div>
     </div>
-    <div class="perday"><div class="v">${perV}</div><div class="s">${perS}</div></div>
+    <button type="button" class="ghost" data-act="compte">Mettre à jour mon solde</button>` : `
+    <div class="calc4"><div class="total4 first"><div class="lab">Pour commencer</div><div class="per">Donne le solde de ton compte Revolut. L'appli en retire tes factures à venir et ton livret, et te dit ce qu'il reste pour vivre.</div></div></div>
+    <button type="button" class="cta" data-act="compte">Donner mon solde</button>`}
   </div>
   <div class="sheet">
     <button type="button" class="grab" data-act="sheet" aria-expanded="${homeOpen}" aria-label="${homeOpen ? "Refermer le détail" : "Ouvrir le détail des dépenses"}">
       <span class="h"><i></i></span>
-      <span class="sum"><b>${since}</b><span>${e2(c.total)}</span></span>
+      <span class="sum"><b>Tes dépenses depuis le ${dLong(P.start)}</b><span>${e2(c.total)}</span></span>
     </button>
     <div class="sheet-body">
       <div class="peek">${peek}</div>
       <div class="detail">
-        <div class="cats">${cats}${c.covered.length ? `<p class="hint">Dont ${c.covered.map((k) => `${e2(k.v)} pris sur l'argent gardé pour ${esc(k.name)}`).join(" et ")}.</p>` : ""}</div>
-        ${avant}
-        <div class="sec"><b>Dernières dépenses</b>${real.length ? `<button type="button" class="link" data-act="all">Tout voir</button>` : ""}</div>
-        ${last}
-        ${revo}
+        ${real.length ? `<div class="cats">${cats}</div>
+        <div class="sec"><b>Dernières dépenses</b><button type="button" class="link" data-act="all">Tout voir</button></div>
+        ${last}` : none}
       </div>
     </div>
   </div>
@@ -659,17 +673,22 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
   function renderAdd() {
     const P = periodOf(pISO(A.date)), isCur = P.key === cur().key;
     const v = amtVal();
-    const c = compute(cur(), { skip: A.id, add: v > 0 && isCur ? { id: "_", amount: v, cat: A.cat || "autres", date: A.date } : null });
-    const chips = S.cats.map((k) => [k.id, k.name]).concat([["autres", "Autres"]]).concat(compute(P).res.map((r) => [r.id, r.name]));
+    const old = A.id ? S.expenses.find((e) => e.id === A.id) : null;
+    const hit = old ? !!old.hit : hits(A.date);
+    const c = simulate(() => {
+      if (old) { S.expenses = S.expenses.filter((e) => e !== old); if (old.hit) S.bal = r2(S.bal + old.amount); }
+      if (v > 0) { S.expenses.push({ id: "_", amount: v, cat: A.cat || "autres", date: A.date }); if (hit) S.bal = r2(S.bal - v); }
+    }, () => compute(cur()));
+    const chips = S.cats.map((k) => [k.id, k.name]).concat([["autres", "Autres"]]).concat(S.upcoming.filter((u) => u.amount < 0 && u.ym === P.ym).map((u) => [u.id, u.name]));
     const parts = A.amt.split(",");
     const shown = A.amt === "" ? "0" : parts[0].replace(/\B(?=(\d{3})+$)/g, NB) + (A.amt.includes(",") ? "," + (parts[1] || "") : "");
     const dl = relDay(A.date);
     const ok = v > 0 && A.cat;
     addEl.innerHTML = `
-<div class="bar0"><button type="button" class="link" data-act="addClose">Annuler</button><b>${A.id ? "Modifier la dépense" : "Nouvelle dépense"}</b>${A.id ? `<button type="button" class="link r danger" data-act="addDel">Supprimer</button>` : `<span style="width:72px"></span>`}</div>
+<div class="bar0"><button type="button" class="link" data-act="addClose">Annuler</button><b>${A.id ? (old && old.cat === "sansdetail" ? "Ranger cette dépense" : "Modifier la dépense") : "Nouvelle dépense"}</b>${A.id ? `<button type="button" class="link r danger" data-act="addDel">Supprimer</button>` : `<span style="width:72px"></span>`}</div>
 <div class="amount">
   <div class="big${A.amt === "" ? " zero" : ""}" aria-live="polite">${esc(shown)}<span class="dec">${NB}€</span></div>
-  <p>${!isCur ? "Dépense d'un autre mois" : c.reste >= 0 ? `Il te restera <b>${e2(c.reste)}</b>` : `Tu dépasseras de <b>${e2(-c.reste)}</b>`}</p>
+  <p>${!c.known ? "" : !hit ? "Déjà comptée dans ton solde" : c.vivre >= 0 ? `Pour vivre, il te restera <b>${e2(c.vivre)}</b>` : `Il te manquera <b>${e2(-c.vivre)}</b>`}</p>
 </div>
 <div class="chips" role="group" aria-label="Catégorie">${chips.map(([id, n]) => `<button type="button" data-act="cat" data-id="${esc(id)}" aria-pressed="${A.cat === id}">${esc(n)}</button>`).join("")}</div>
 <div class="opts">
@@ -703,23 +722,29 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
     const note = A.note.trim();
     if (A.id) {
       const e = S.expenses.find((e) => e.id === A.id);
-      if (e) { e.amount = v; e.cat = A.cat; e.date = A.date; e.note = note; }
+      if (e) {
+        if (e.hit) S.bal = r2(S.bal + e.amount - v);
+        e.amount = v; e.cat = A.cat; e.date = A.date; e.note = note;
+        if (e.src === "solde") e.src = "manuel";               // un montant « sans détail » qu'on vient de ranger
+      }
       save(); closeAdd(); render(); toast("Dépense modifiée");
     } else {
-      const e = { id: uid(), date: A.date, amount: v, cat: A.cat, note, src: "manuel", at: Date.now() };
-      S.expenses.push(e); save(); closeAdd(); render();
-      toast(`Ajouté${NB}: ${e2(v)}, ${catName(e.cat)}`, "Annuler", () => { S.expenses = S.expenses.filter((x) => x.id !== e.id); save(); render(); });
+      const e = { id: uid(), date: A.date, amount: v, cat: A.cat, note, src: "manuel", at: Date.now(), hit: hits(A.date) };
+      S.expenses.push(e); if (e.hit) S.bal = r2(S.bal - v);
+      save(); closeAdd(); render();
+      toast(`Ajouté${NB}: ${e2(v)}, ${catName(e.cat)}`, "Annuler", () => { S.expenses = S.expenses.filter((x) => x.id !== e.id); if (e.hit) S.bal = r2(S.bal + e.amount); save(); render(); });
     }
   }
   function addDel() {
     const e = S.expenses.find((e) => e.id === A.id); if (!e) return closeAdd();
-    S.expenses = S.expenses.filter((x) => x.id !== e.id); save(); closeAdd(); closeModal(); render();
-    toast("Dépense supprimée", "Annuler", () => { S.expenses.push(e); save(); render(); });
+    S.expenses = S.expenses.filter((x) => x.id !== e.id); if (e.hit) S.bal = r2(S.bal + e.amount);
+    save(); closeAdd(); closeModal(); render();
+    toast("Dépense supprimée", "Annuler", () => { S.expenses.push(e); if (e.hit) S.bal = r2(S.bal - e.amount); save(); render(); });
   }
   function editExpense(id) {
     const e = S.expenses.find((e) => e.id === id); if (!e) return;
     closeModal();
-    openAdd({ id: e.id, amt: Number.isInteger(e.amount) ? String(e.amount) : e.amount.toFixed(2).replace(".", ","), cat: catName(e.cat) === "Autres" && e.cat !== "autres" ? "autres" : e.cat, date: e.date, note: e.note || "" });
+    openAdd({ id: e.id, amt: Number.isInteger(e.amount) ? String(e.amount) : e.amount.toFixed(2).replace(".", ","), cat: e.cat === "sansdetail" ? null : catName(e.cat) === "Autres" && e.cat !== "autres" ? "autres" : e.cat, date: e.date, note: e.note || "" });
   }
 
   /* ================= Et si ================= */
@@ -747,23 +772,17 @@ input.opt { text-align: left; font-weight: 500; font-size: 16px; }
     const P = cur(), c = compute(P);
     if (etsi.mode === "once") {
       const x = pos(etsi.amount) || 0;
-      const reste = r2(c.reste - x);
-      const pd = Math.floor(Math.max(0, reste) / c.left);
-      const early = c.elapsed < 4 || c.spent <= 0;
-      const gap = early ? Math.min(0, reste) : c.proj - x;          // ce qui s'ajoute aux 350 prévus, ou s'en retire
-      const cote0 = Math.max(0, Math.floor(S.aside + (early ? Math.min(0, c.reste) : c.proj)));
-      const cote1 = Math.max(0, Math.floor(S.aside + gap));
-      const fin = `fin ${MOIS[P.end.getMonth()]}`;
-      const why = early
-        ? (reste >= 0 ? `Les ${eA(S.aside)} prévus, si tu tiens ${e0(pd)} par jour jusqu'au ${dLong(P.end)}. Il est trop tôt dans le mois pour estimer ton rythme.` : `Ce qui dépasse est pris sur les ${eA(S.aside)} prévus.`)
-        : S.aside + gap < 0 ? `Si tu continues à dépenser ${e0(Math.round(c.rate))} par jour, comme depuis le ${dLong(P.start)}, les ${eA(S.aside)} prévus y passent en entier.`
-        : `Les ${eA(S.aside)} prévus, ${gap >= 0 ? "plus ce qu'il te resterait" : "moins ce qui te manquerait"} le ${jour(P.end)} si tu continues à dépenser ${e0(Math.round(c.rate))} par jour, comme depuis le ${dLong(P.start)}.`;
+      if (!c.known) { out.innerHTML = `<div class="card"><p class="txt" style="padding:14px 0">Donne d'abord le solde de ton compte, dans l'écran Aujourd'hui.</p></div>`; return; }
+      const v1 = r2(c.vivre - x), pd = Math.floor(Math.max(0, v1) / c.left);
+      const k1 = x ? (v1 >= 0 ? "Pour vivre, il te restera" : "Il te manquera") : c.vivre >= 0 ? `Pour vivre jusqu'au ${jour(P.end)}` : "Il te manque";
+      const liv = v1 < 0 && c.livret ? Math.max(0, r2(c.livret + v1)) : null;
       out.innerHTML = `
 <div class="stack" style="gap:16px">
 <div class="card">
-  <div class="res"><div class="k">${x ? (reste >= 0 ? "Il te restera" : "Tu dépasseras de") : reste >= 0 ? "Il te reste" : "Tu as dépassé de"}</div><div class="v"><b>${e2(Math.abs(reste))}</b>${x ? `<span>au lieu de ${c.reste >= 0 ? e2(c.reste) + (reste < 0 ? " restants" : "") : "dépasser de " + e2(-c.reste)}</span>` : ""}</div></div>
+  <div class="res"><div class="k">${k1}</div><div class="v"><b>${e2(Math.abs(v1))}</b>${x && v1 >= 0 ? `<span>au lieu de ${e2(c.vivre)}</span>` : ""}</div></div>
   <div class="res"><div class="k">Par jour jusqu'au ${jour(P.end)}</div><div class="v"><b>${e0(pd)}</b>${x && pd !== c.perDay ? `<span>au lieu de ${e0(c.perDay)}</span>` : ""}</div></div>
-  <div class="resx"><div class="res"><div class="k">De côté ${fin}</div><div class="v"><b>${e0(cote1)}</b>${x && cote1 !== cote0 ? `<span>au lieu de ${e0(cote0)}</span>` : ""}</div></div><p>${why}</p></div>
+  ${liv !== null ? `<div class="resx"><div class="res"><div class="k">Pour ton livret</div><div class="v"><b>${eA(liv)}</b><span>au lieu de ${eA(c.livret)}</span></div></div><p>Ce qui manque est pris sur les ${eA(c.livret)} prévus pour ton livret.</p></div>` : ""}
+  ${v1 < 0 && !c.livret ? `<div class="resx"><p>Ton livret est déjà alimenté ce mois-ci${NB}: il faudrait y reprendre ${e2(-v1)}.</p></div>` : ""}
 </div>
 ${x ? `<button type="button" class="ghost" data-act="etsiAdd">Ajouter cette dépense</button>` : ""}
 </div>`;
@@ -794,9 +813,9 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
   function renderBudget() {
     const P = cur(), c = compute(P);
     const fixed = S.fixed.map((f) => {
-      const paid = isPaid(f, P);
+      const paid = !!flags(P).paid[f.id];
       const sub = [f.day ? "le " + (f.day === 1 ? "1er" : f.day) : "", f.note].filter(Boolean).join(", ");
-      return `<div class="tr sub"><button type="button" class="tick" data-act="tick" data-id="${f.id}" aria-pressed="${paid}" aria-label="${esc(f.name)}${NB}: ${paid ? "payé ce mois-ci" : "pas encore payé ce mois-ci"}">${tickSvg}</button><button type="button" class="name" data-act="fixEdit" data-id="${f.id}"><span>${esc(f.name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>${cell("c_fix_" + f.id, eA(f.amount), f.name)}</div>`;
+      return `<div class="tr sub"><button type="button" class="tick" data-act="compte" aria-pressed="${paid}" aria-label="${esc(f.name)}${NB}: ${paid ? "déjà passé ce mois-ci" : "pas encore passé ce mois-ci"}">${tickSvg}</button><button type="button" class="name" data-act="fixEdit" data-id="${f.id}"><span>${esc(f.name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>${cell("c_fix_" + f.id, eA(f.amount), f.name)}</div>`;
     }).join("");
     const cats = S.cats.map((k) => `<div class="tr sub"><button type="button" class="name" data-act="catEdit" data-id="${k.id}"><span>${esc(k.name)}</span></button>${cell("c_cat_" + k.id, eA(k.budget), k.name)}</div>`).join("");
     const months = S.upcoming.map((u) => {
@@ -817,7 +836,7 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
     <button type="button" class="link add" data-act="fixAdd">Ajouter une ligne</button>
 
     <div class="tr main"><label class="hd" for="c_aside">De côté</label><div class="minus"><span>−</span>${cell("c_aside", eA(S.aside), "De côté chaque mois")}</div></div>
-    <div class="tr sub"><button type="button" class="tick" data-act="asideTick" aria-pressed="${done}" aria-label="${done ? "Mis sur le livret ce mois-ci" : "Pas encore mis sur le livret ce mois-ci"}">${tickSvg}</button><div class="name"><span>Mis sur le livret ce mois-ci</span></div></div>
+    <div class="tr sub"><button type="button" class="tick" data-act="compte" aria-pressed="${done}" aria-label="${done ? "Mis sur le livret ce mois-ci" : "Pas encore mis sur le livret ce mois-ci"}">${tickSvg}</button><div class="name"><span>Mis sur le livret ce mois-ci</span></div></div>
     <div class="tr sub"><label class="name" for="c_livret"><span>Déjà sur le livret</span></label>${cell("c_livret", eA(S.livret), "Déjà sur le livret")}</div>
 
     <div class="tr total"><div class="name"><span>À dépenser</span><small id="tJour"></small></div><div class="calc" id="tDep"></div></div>
@@ -906,7 +925,7 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
     const f = id ? S.fixed.find((f) => f.id === id) : null;
     openModal({
       title: f ? "Ligne du fixe" : "Nouvelle ligne du fixe", save: "Enregistrer", del: f ? "Supprimer cette ligne" : "", focus: f ? "" : "#mName",
-      body: fld("mName", "Nom", f ? f.name : "", 'type="text" maxlength="40"') + fld("mAmt", "Montant par mois", f ? raw(f.amount) : "", numAttr) + fld("mDay", "Jour du prélèvement (facultatif)", f && f.day ? f.day : "", 'type="text" inputmode="numeric" maxlength="2"', "Avec un jour, la ligne se coche toute seule ce jour-là.") + fld("mNote", "Précision (facultatif)", f ? f.note || "" : "", 'type="text" maxlength="40"'),
+      body: fld("mName", "Nom", f ? f.name : "", 'type="text" maxlength="40"') + fld("mAmt", "Montant par mois", f ? raw(f.amount) : "", numAttr) + fld("mDay", "Jour du prélèvement (facultatif)", f && f.day ? f.day : "", 'type="text" inputmode="numeric" maxlength="2"', "Rappelé à côté de la ligne quand tu mets ton solde à jour.") + fld("mNote", "Précision (facultatif)", f ? f.note || "" : "", 'type="text" maxlength="40"', "Pour des abonnements, écris ici leurs noms séparés par des virgules : le relevé Revolut les reconnaîtra."),
       onSave() {
         const name = mVal("mName").trim(), amt = pos(mVal("mAmt")), dayT = mVal("mDay").trim(), day = dayT ? parseInt(dayT, 10) : null;
         if (!name) return mErr("Donne un nom à la ligne.");
@@ -948,7 +967,7 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
       body: fld("mName", "Nom", u ? u.name : "", 'type="text" maxlength="40"') +
         `<div class="fld"><span class="lb">C'est</span><div class="seg" role="group" aria-label="Sens"><button type="button" data-act="upKind" data-k="out" aria-pressed="${kind === "out"}">Une dépense</button><button type="button" data-act="upKind" data-k="in" aria-pressed="${kind === "in"}">Une rentrée d'argent</button></div></div>` +
         fld("mAmt", "Montant", u ? raw(Math.abs(u.amount)) : "", numAttr) +
-        `<div class="fld"><label for="mYm">Mois</label><select id="mYm">${monthOptions(u ? u.ym : "")}</select><small>Une rentrée s'ajoute à ce que tu peux dépenser ce mois-là. Une dépense est mise de côté ce mois-là, et devient une catégorie quand tu ajoutes une dépense.</small></div>`,
+        `<div class="fld"><label for="mYm">Mois</label><select id="mYm">${monthOptions(u ? u.ym : "")}</select><small>Une rentrée est comptée comme de l'argent à venir ce mois-là. Une dépense est gardée à part ce mois-là, jusqu'à ce que tu l'aies payée.</small></div>`,
       onSave() {
         const name = mVal("mName").trim(), amt = pos(mVal("mAmt")), ym = mVal("mYm") || null;
         const pressed = $('[data-act="upKind"][aria-pressed="true"]', modal), k = pressed ? pressed.dataset.k : "out";
@@ -965,108 +984,119 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
     openModal({
       title: "Jour de paie", save: "Enregistrer", focus: "#mDay",
       body: fld("mDay", "Ton salaire arrive vers le", S.payDay, 'type="text" inputmode="numeric" maxlength="2"', "Le mois de l'appli repart de ce jour-là.") ,
-      onSave() { const d = parseInt(mVal("mDay"), 10); if (!(d >= 1 && d <= 31)) return mErr("Le jour doit être entre 1 et 31."); S.payDay = d; S.cur = cur().key; save(); closeModal(); render(); },
-    });
-  }
-  function avantSheet() {
-    const e = S.expenses.find((e) => e.cat === "avant" && e.date >= cur().s); if (!e) return;
-    openModal({
-      title: "Avant l'installation", save: "Enregistrer", focus: "#mAmt",
-      body: `<p class="txt">Ce que tu avais déjà dépensé ce mois-ci avant de régler l'appli, calculé à partir de ton solde. Tu peux corriger le montant.</p>` + fld("mAmt", "Montant", raw(e.amount), numAttr),
-      onSave() { const v = pos(mVal("mAmt")); if (!isFinite(v)) return mErr("Le montant doit être un nombre."); if (v === 0) S.expenses = S.expenses.filter((x) => x !== e); else e.amount = v; save(); closeModal(); render(); },
-    });
-  }
-  function revoSheet() {
-    const P = cur(), c = compute(P), x = S.balanceSet ? expected(P, c) : null;
-    openModal({
-      title: "Solde Revolut", save: "Partir de ce solde", focus: "#mBal",
-      body: (x ? `<p class="txt">D'après l'appli, ton compte courant devrait afficher <b>${e2(x.total)}</b>.</p>` : `<p class="txt">Donne le solde de ton compte courant Revolut, sans le livret.</p>`) + fld("mBal", "Revolut affiche", "", numAttr) + `<div id="mDiff"></div>`,
       onSave() {
-        const b = parseAmount(mVal("mBal")); if (!isFinite(b)) return mErr("Écris le solde, par exemple 815,40.");
-        const base = expected(P, c).total - S.carry;
-        S.carry = r2(b - base); S.balanceSet = true; save(); closeModal(); render(); toast("Solde corrigé");
+        const d = parseInt(mVal("mDay"), 10); if (!(d >= 1 && d <= 31)) return mErr("Le jour doit être entre 1 et 31.");
+        const oldK = cur().key; S.payDay = d; const newK = cur().key;
+        if (oldK !== newK) for (const k of ["paid", "asideDone", "got", "doneUp"]) if (S[k][oldK] !== undefined) { S[k][newK] = S[k][oldK]; delete S[k][oldK]; }
+        S.cur = newK; save(); closeModal(); render();
       },
     });
   }
-  modal.addEventListener("input", (e) => {
-    if (e.target.id !== "mBal" || !S.balanceSet) return;
-    const P = cur(), c = compute(P), x = expected(P, c), b = parseAmount(e.target.value), box = $("#mDiff");
-    if (!isFinite(b)) { box.innerHTML = ""; return; }
-    const d = r2(x.total - b);
-    if (Math.abs(d) < 0.005) box.innerHTML = `<p class="txt">C'est le même montant, rien à corriger.</p>`;
-    else if (d > 0) box.innerHTML = `<p class="txt">Il y a ${e2(d)} de moins que prévu. Si c'est une dépense oubliée, ajoute-la.</p><button type="button" class="ghost" data-act="forgot" data-v="${d}">Ajouter ${e2(d)} en dépense oubliée</button>`;
-    else box.innerHTML = `<p class="txt">Il y a ${e2(-d)} de plus que prévu.</p>`;
-  });
+  let CS = null;
+  const csTick = (kind, id, on, name, sub, amount) => `<div class="check"><button type="button" class="tick" style="margin-left:-8px" data-act="csTick" data-kind="${kind}" data-id="${esc(id)}" aria-pressed="${!!on}" aria-label="${esc(name)}">${tickSvg}</button><span class="lbl">${esc(name)}${sub ? `<small>${esc(sub)}</small>` : ""}</span><span class="amt2">${amount}</span></div>`;
+  function compteRows(P) {
+    const rows = [];
+    const F = flags(P);
+    if (!F.got.salary) rows.push(csTick("got", "salary", CS.got.salary, "Salaire reçu", "", eA(S.salary)));
+    for (const u of S.upcoming) if (u.amount > 0 && u.ym === P.ym && !F.got[u.id]) rows.push(csTick("got", u.id, CS.got[u.id], `${u.name}${NB}: reçu`, "", eA(u.amount)));
+    for (const f of S.fixed) rows.push(csTick("paid", f.id, CS.paid[f.id], f.name, [f.day ? "prévu le " + (f.day === 1 ? "1er" : f.day) : "", f.note].filter(Boolean).join(", "), eA(f.amount)));
+    rows.push(csTick("aside", "aside", CS.aside, "Viré sur ton livret", "", eA(S.aside)));
+    for (const u of S.upcoming) if (u.amount < 0 && u.ym === P.ym) rows.push(csTick("done", u.id, CS.done[u.id], `${u.name}${NB}: c'est payé`, "", eA(-u.amount)));
+    if (S.early === iso(P.next) || dDays(P.next, today()) <= 5) rows.push(csTick("early", "early", CS.early, "Paie du mois prochain déjà arrivée", "", eA(S.salary)));
+    return rows.join("");
+  }
+  function applyCompte(P, b) {
+    S.paid[P.key] = Object.assign({}, CS.paid); S.got[P.key] = Object.assign({}, CS.got); S.doneUp[P.key] = Object.assign({}, CS.done);
+    if (CS.aside) S.asideDone[P.key] = true; else delete S.asideDone[P.key];
+    if (CS.early) S.early = iso(P.next); else if (S.early === iso(P.next)) S.early = null;
+    if (isFinite(b)) S.bal = r2(b);
+  }
+  function compteOut(boxId, inputId) {
+    const box = document.getElementById(boxId); if (!box) return null;
+    const P = cur(), b = parseAmount(mVal(inputId));
+    if (!isFinite(b)) { box.innerHTML = `<span>Écris le solde que Revolut affiche pour voir ce qu'il te reste pour vivre.</span>`; return null; }
+    const c = simulate(() => applyCompte(P, b), () => compute(P));
+    box.innerHTML = c.vivre >= 0
+      ? `<span>Pour vivre jusqu'au ${dLong(P.end)}</span>${big(c.vivre)}<span>${e0(c.perDay)} par jour</span>`
+      : `<span>Il te manque</span>${big(-c.vivre)}<span>pour payer tes factures${c.livret ? ` et mettre ${eA(c.livret)} sur ton livret` : ""}</span>`;
+    return c;
+  }
+  function compteSheet() {
+    const P = cur(), F = flags(P);
+    CS = { paid: Object.assign({}, F.paid), got: Object.assign({}, F.got), done: Object.assign({}, F.done), aside: !!S.asideDone[P.key], early: S.early === iso(P.next) };
+    const known = typeof S.bal === "number";
+    openModal({
+      title: "Mon compte", save: "Enregistrer", focus: known ? "" : "#mBal",
+      body: fld("mBal", "Ton compte Revolut affiche", known ? raw(S.bal) : "", numAttr, "Le compte courant, sans le livret.") +
+        `<div><div class="day" style="padding-top:0">Coche ce qui est déjà passé sur ton compte</div>${compteRows(P)}</div><div class="out2" id="csOut"></div>`,
+      onSave() {
+        const b = parseAmount(mVal("mBal")); if (!isFinite(b)) return mErr("Écris le solde que Revolut affiche, par exemple 1 307,16.");
+        // Ce que les nouvelles coches expliquent dans le mouvement du solde
+        let explained = 0;
+        for (const f of S.fixed) { const was = !!F.paid[f.id], now = !!CS.paid[f.id]; if (now !== was) explained += now ? f.amount : -f.amount; }
+        const asideWas = !!S.asideDone[P.key];
+        if (CS.aside !== asideWas) explained += CS.aside ? S.aside : -S.aside;
+        if (!!CS.got.salary !== !!F.got.salary) explained += CS.got.salary ? -S.salary : S.salary;
+        for (const u of S.upcoming) if (u.amount > 0 && u.ym === P.ym && !!CS.got[u.id] !== !!F.got[u.id]) explained += CS.got[u.id] ? -u.amount : u.amount;
+        if (CS.early !== (S.early === iso(P.next))) explained += CS.early ? -S.salary : S.salary;
+        const drop = known ? r2(S.bal - explained - b) : 0;        // une baisse que rien n'explique : des dépenses
+        applyCompte(P, b);
+        if (CS.aside !== asideWas) S.livret = r2(Math.max(0, S.livret + (CS.aside ? S.aside : -S.aside)));
+        S.balAt = iso(today());
+        if (drop > 0.004) S.expenses.push({ id: uid(), date: iso(today()), amount: drop, cat: "sansdetail", note: "", src: "solde", at: Date.now() });
+        else if (drop < -0.004) {                                   // le solde est plus haut que prévu : on corrige d'abord le « sans détail » du mois
+          let back = -drop;
+          for (const e of S.expenses.filter((e) => e.src === "solde" && e.date >= P.s).sort(byRecent)) { if (back <= 0) break; const cut = Math.min(e.amount, back); e.amount = r2(e.amount - cut); back = r2(back - cut); }
+          S.expenses = S.expenses.filter((e) => !(e.src === "solde" && e.amount < 0.005));
+        }
+        save(); closeModal(); CS = null; render(); toast("Solde mis à jour");
+      },
+    });
+    compteOut("csOut", "mBal");
+  }
+  modal.addEventListener("input", (e) => { if (e.target.id === "mBal" && CS) compteOut("csOut", "mBal"); });
 
   function allSheet() {
     const P = cur(), c = compute(P);
-    const list = c.list.filter((e) => e.cat !== "avant").sort(byRecent);
+    const list = c.list.slice().sort(byRecent);
     let h = "", day = "";
     for (const e of list) {
       if (e.date !== day) { day = e.date; const d = pISO(day); h += `<div class="day">${cap(JOURS[d.getDay()])} ${dLong(d)}</div>`; }
-      h += `<button type="button" class="row" data-act="edit" data-id="${e.id}"><span class="l"><span class="n">${esc(e.note || catName(e.cat, P))}</span>${e.note ? `<span class="d">${esc(catName(e.cat, P))}</span>` : ""}</span><span class="a">${e2(e.amount)}</span></button>`;
+      h += `<button type="button" class="row" data-act="edit" data-id="${e.id}"><span class="l"><span class="n">${esc(e.note || catName(e.cat, P))}</span>${e.note ? `<span class="d">${esc(catName(e.cat, P))}</span>` : e.cat === "sansdetail" ? `<span class="d">baisse de ton solde, touche pour la ranger</span>` : ""}</span><span class="a">${e2(e.amount)}</span></button>`;
     }
-    openModal({ title: "Dépenses du mois", body: `<div>${h || `<p class="txt muted">Aucune dépense saisie.</p>`}</div>` });
+    openModal({ title: "Dépenses du mois", body: `<div>${h || `<p class="txt muted">L'appli ne connaît encore aucune dépense ce mois-ci.</p>`}</div>` });
   }
 
   /* ================= Réglage de départ ================= */
-  let SU = { aside: null, paid: null };
   function renderSetup() {
     const P = cur();
-    if (!SU.paid) { SU.paid = {}; for (const f of S.fixed) SU.paid[f.id] = isPaid(f, P); }
+    if (!CS) CS = { paid: {}, got: { salary: true }, done: {}, aside: false, early: false };
     const c = compute(P);
     view.innerHTML = `
 <div class="setup">
   <h1>Fin de mois</h1>
-  <p class="lead">Un réglage, une seule fois. Ton budget est déjà rempli${NB}: salaire ${eA(S.salary)}, fixe ${eA(c.fixe)}, ${eA(S.aside)} de côté. Il reste ${eA(c.base)} à dépenser par mois.</p>
+  <p class="lead">Un réglage, une seule fois. Tu donnes le solde de ton compte, l'appli en retire ce qui doit encore partir et te dit ce qu'il reste pour vivre jusqu'à la paie.</p>
 
   <div><p class="q">Combien affiche ton compte Revolut maintenant${NB}?</p>
   <div class="card field"><div class="f"><label for="suBal">Compte courant</label><div class="amt"><input class="n sm" id="suBal" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span>€</span></div></div></div></div>
 
-  <div><p class="q">Les ${eA(S.aside)} de ce mois sont déjà sur ton livret${NB}?</p>
-  <div class="seg" role="group" aria-label="Livret"><button type="button" data-act="suAside" data-v="1" aria-pressed="${SU.aside === true}">Oui</button><button type="button" data-act="suAside" data-v="0" aria-pressed="${SU.aside === false}">Pas encore</button></div></div>
-
-  <div><p class="q">Déjà prélevé depuis le ${dLong(P.start)}${NB}:</p>
-  <div class="card" style="padding:4px 14px">${S.fixed.map((f) => `<div class="check"><button type="button" class="tick" style="margin-left:-8px" data-act="suTick" data-id="${f.id}" aria-pressed="${!!SU.paid[f.id]}" aria-label="${esc(f.name)}">${tickSvg}</button><span class="lbl">${esc(f.name)}</span><span class="amt2">${eA(f.amount)}</span></div>`).join("")}</div></div>
+  <div><p class="q">Coche ce qui est déjà passé depuis le ${dLong(P.start)}${NB}:</p>
+  <div class="card" style="padding:4px 14px">${compteRows(P)}</div></div>
 
   <div class="out" id="suOut"></div>
   <div class="grow"></div>
   <div class="stack" style="align-items:center">
     <button type="button" class="cta" id="suGo" data-act="suGo" disabled>Commencer</button>
-    <button type="button" class="link" data-act="suSkip">Commencer sans donner mon solde</button>
     <button type="button" class="link" data-act="restore">J'ai une sauvegarde à reprendre</button>
   </div>
 </div>`;
     setupOut();
   }
-  function setupCalc() {
-    const P = cur(), c = compute(P), b = parseAmount(mVal("suBal"));
-    if (!isFinite(b) || SU.aside === null) return null;
-    const unpaid = sum(S.fixed.filter((f) => !SU.paid[f.id]), (f) => f.amount);
-    const free = r2(b - unpaid - (SU.aside ? 0 : S.aside));
-    return { P, c, free, reste: Math.min(free, c.aDep), extra: Math.max(0, r2(free - c.aDep)) };
-  }
-  function setupOut() {
-    const out = $("#suOut"), goBtn = $("#suGo"); if (!out) return;
-    const r = setupCalc();
-    if (!r) { out.innerHTML = `<span>Donne ton solde et réponds à la question du livret pour voir ce qu'il te reste.</span>`; goBtn.disabled = true; return; }
-    const left = r.c.left;
-    out.innerHTML = r.reste >= 0
-      ? `<span>Il te reste</span>${big(r.reste)}<span>${e0(Math.floor(r.reste / left))} par jour jusqu'au ${dLong(r.P.end)}${r.extra ? `, et ${e2(r.extra)} d'avance sur ton compte` : ""}</span>`
-      : `<span>Tu as dépassé de</span>${big(-r.reste)}<span>pris sur tes ${eA(S.aside)} de côté</span>`;
-    goBtn.disabled = false;
-  }
-  function setupGo(skip) {
-    const P = cur();
-    S.paid[P.key] = Object.assign({}, SU.paid);
-    if (!skip) {
-      const r = setupCalc(); if (!r) return;
-      if (SU.aside) S.asideDone[P.key] = true;
-      const catchUp = r2(r.c.aDep - r.reste);
-      if (catchUp > 0.004) S.expenses.push({ id: uid(), date: P.s, amount: catchUp, cat: "avant", note: "", src: "reglage", at: Date.now() });
-      S.carry = r.extra; S.balanceSet = true;
-    }
-    S.setupDone = true; S.setupAt = iso(today()); S.setupKey = P.key; S.cur = P.key;
+  function setupOut() { const goBtn = $("#suGo"); if (goBtn) goBtn.disabled = !compteOut("suOut", "suBal"); }
+  function setupGo() {
+    const P = cur(), b = parseAmount(mVal("suBal")); if (!isFinite(b)) return;
+    applyCompte(P, b); S.balAt = iso(today());
+    S.setupDone = true; S.setupAt = iso(today()); S.cur = P.key; CS = null;
     save(); tab = "aujourdhui"; render();
   }
 
@@ -1088,7 +1118,7 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
     if (cellv !== "" || row.length) { row.push(cellv); rows.push(row); }
     return rows.filter((r) => r.some((c) => c.trim() !== ""));
   }
-  const HEAD = { date: ["date de debut", "started date", "date de fin", "completed date", "date"], label: ["description", "libelle"], amount: ["montant", "amount"], fee: ["frais", "fee"], status: ["etat", "state", "statut"], product: ["produit", "product"], type: ["type"], cur: ["devise", "currency"] };
+  const HEAD = { date: ["date de debut", "started date", "date de fin", "completed date", "date"], label: ["description", "libelle"], amount: ["montant", "amount"], fee: ["frais", "fee"], status: ["etat", "state", "statut"], product: ["produit", "product"], type: ["type"], cur: ["devise", "currency"], end: ["date de fin", "completed date"], balance: ["solde", "balance"] };
   function parseDate(s) {
     s = String(s || "").trim();
     let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return `${m[1]}-${m[2]}-${m[3]}`;
@@ -1100,12 +1130,13 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
     essence: ["totalenergies", "total", "esso", "shell", "avia", "carburant", "agip", "station-service", "station service"],
     restos: ["restaurant", "resto", "cafe", "brasserie", "pizz", "kebab", "burger", "mcdonald", "kfc", "five guys", "subway", "uber eats", "ubereats", "deliveroo", "cinema", "gaumont", "ugc", "pathe", "bowling", "bistro", "sushi", "creperie"],
   };
-  const FIX_ALIAS = { salle: ["family meaux"], gmf: ["gmf"], edf: ["edf"], revolut: ["plan fee", "frais d'abonnement", "frais du forfait", "abonnement metal", "abonnement premium", "abonnement plus", "abonnement ultra", "forfait metal", "forfait premium"] };
+  const FIX_ALIAS = { salle: ["family meaux"], gmf: ["gmf"], edf: ["edf"], abos: ["od3on"], revolut: ["plan fee", "frais d'abonnement", "frais du forfait", "abonnement metal", "abonnement premium", "abonnement plus", "abonnement ultra", "forfait metal", "forfait premium"] };
   const wordStart = (hay, needle) => new RegExp("(^|[^a-z0-9])" + needle.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(hay);
   function matchFixed(label, amount, type) {
     const l = norm(label);
     for (const f of S.fixed) {
-      const words = (FIX_ALIAS[f.id] || []).concat([norm(f.name)]);
+      // le nom de la ligne, ses noms connus, et ce qui est écrit dans sa précision (noms séparés par des virgules)
+      const words = (FIX_ALIAS[f.id] || []).concat([norm(f.name)], String(f.note || "").split(",").map(norm));
       if (words.some((w) => w.length >= 3 && l.includes(w))) return f;
     }
     if (/virement|transfer|prelevement|direct debit/.test(norm(type))) { const f = S.fixed.find((f) => Math.abs(f.amount - amount) < 0.005); if (f) return f; }
@@ -1114,6 +1145,7 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
   function guessCat(label, type) {
     const l = norm(label), t = norm(type);
     const has = (id) => S.cats.some((k) => k.id === id);
+    const rule = S.rules[l]; if (rule) return rule === "autres" || has(rule) ? rule : "autres";   // ce que tu as déjà rangé toi-même
     if (/retrait|atm|cash/.test(t) || /retrait d.?especes|cash withdrawal|\batm\b|distributeur/.test(l)) return has("liquide") ? "liquide" : "autres";
     for (const [id, words] of Object.entries(DICT)) if (has(id) && words.some((w) => wordStart(l, w))) return id;
     return "autres";
@@ -1126,14 +1158,16 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
     for (const [k, names] of Object.entries(HEAD)) idx[k] = names.map((n) => head.indexOf(n)).find((i) => i >= 0);
     if (idx.label === undefined || idx.amount === undefined || idx.date === undefined) throw new Error("Ce fichier ne ressemble pas à un relevé Revolut : il manque les colonnes Description, Montant ou Date.");
     const P = cur(), known = new Set(S.csvKeys), ignored = new Set(S.ignoredKeys);
-    const st = { read: 0, income: 0, fixed: 0, livret: 0, dup: 0, twin: 0, skipped: 0 };
-    const now = [], older = [], fixedNow = [], twins = [];
+    const st = { read: 0, income: 0, fixed: 0, livret: 0, dup: 0, twin: 0, skipped: 0, pending: 0 };
+    const now = [], older = [], fixedNow = [], twins = [], salaryDates = [];
     const manual = S.expenses.filter((e) => e.src === "manuel" && !e.key);
     const used = new Set();
+    let lastEnd = "", lastBal = null, pendingNet = 0, min = "9999", max = "", livretNow = false;
     for (const r of rows.slice(1)) {
       st.read++;
       const status = idx.status !== undefined ? norm(r[idx.status]) : "termine";
-      if (status && !["termine", "completed", "terminee"].includes(status)) { st.skipped++; continue; }
+      const pending = status === "en attente" || status === "pending";
+      if (status && !pending && !["termine", "completed", "terminee"].includes(status)) { st.skipped++; continue; }
       if (idx.cur !== undefined && r[idx.cur] && norm(r[idx.cur]) !== "eur") { st.skipped++; continue; }
       const rawDate = (r[idx.date] || "").trim(), date = parseDate(rawDate);
       const amt = parseAmount(r[idx.amount]);
@@ -1141,63 +1175,83 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
       if (!date || !isFinite(amt) || !isFinite(fee)) { st.skipped++; continue; }
       const label = (r[idx.label] || "").trim(), type = idx.type !== undefined ? r[idx.type] || "" : "", product = idx.product !== undefined ? norm(r[idx.product]) : "";
       const net = r2(amt - fee);
-      if (/epargne|savings|depot|deposit|coffre|vault|pocket|livret/.test(product) || /compte d.?epargne|coffre|livret|savings|vault|pocket/.test(norm(label))) { st.livret++; continue; }
-      if (net >= 0) { st.income++; continue; }
+      if (/epargne|savings|depot|deposit|coffre|vault|pocket|livret/.test(product)) { st.livret++; continue; }
+      // Le solde du compte : celui de la dernière ligne terminée, moins les paiements encore « en attente »
+      if (date < min) min = date; if (date > max) max = date;
+      if (pending) { pendingNet = r2(pendingNet + net); st.pending++; }
+      else if (idx.balance !== undefined && String(r[idx.balance] || "").trim() !== "") {
+        const end = idx.end !== undefined ? (r[idx.end] || "").trim() : rawDate, b = parseAmount(r[idx.balance]);
+        if (isFinite(b) && end >= lastEnd) { lastEnd = end; lastBal = b; }
+      }
+      if (/compte d.?epargne|coffre|livret|savings|vault|pocket|epargne/.test(norm(label))) { st.livret++; if (net < 0 && date >= P.s && date <= P.e) livretNow = true; continue; }
+      if (net >= 0) { st.income++; if (Math.abs(net - S.salary) <= Math.max(5, S.salary * 0.01)) salaryDates.push(date); continue; }
       const amount = r2(-net);
       const key = `${rawDate}|${label}|${r[idx.amount]}|${idx.fee !== undefined ? r[idx.fee] : ""}`;
-      if (known.has(key) || ignored.has(key)) { st.dup++; continue; }
-      known.add(key);
       const inCur = date >= P.s && date <= P.e;
       const f = matchFixed(label, amount, type);
       if (f) { st.fixed++; if (inCur) fixedNow.push(f.id); continue; }
+      if (known.has(key) || ignored.has(key)) { st.dup++; continue; }
+      known.add(key);
       const tw = manual.find((e) => !used.has(e.id) && Math.abs(e.amount - amount) < 0.005 && Math.abs(dDays(pISO(e.date), pISO(date))) <= 2);
       if (tw) { used.add(tw.id); twins.push({ id: tw.id, key }); st.twin++; continue; }
-      const item = { key, date, label, amount, cat: guessCat(label, type), include: true };
-      (inCur ? now : older).push(item);
+      const guess = guessCat(label, type);
+      (inCur ? now : older).push({ key, date, label, amount, cat: guess, guess, include: true });
     }
     now.sort((a, b) => (a.date < b.date ? 1 : -1));
-    return { P, st, now, older, fixedNow, twins };
+    const balance = lastBal === null ? null : r2(lastBal + pendingNet);
+    return { P, st, now, older, fixedNow, twins, salaryDates, livretNow, balance, min, max };
   }
   function importSheet() {
-    const { P, st, now, older } = IMP;
-    const opts = (sel) => S.cats.map((k) => [k.id, k.name]).concat([["autres", "Autres"]]).concat(compute(P).res.map((r) => [r.id, r.name])).map(([id, n]) => `<option value="${esc(id)}" ${sel === id ? "selected" : ""}>${esc(n)}</option>`).join("");
+    const { P, st, now, older, balance, max } = IMP;
+    const opts = (sel) => S.cats.map((k) => [k.id, k.name]).concat([["autres", "Autres"]]).concat(S.upcoming.filter((u) => u.amount < 0 && u.ym === P.ym).map((u) => [u.id, u.name])).map(([id, n]) => `<option value="${esc(id)}" ${sel === id ? "selected" : ""}>${esc(n)}</option>`).join("");
     const left = [];
     if (st.income) left.push(`${st.income} rentrée${st.income > 1 ? "s" : ""} d'argent`);
     if (st.fixed) left.push(`${st.fixed} ligne${st.fixed > 1 ? "s" : ""} du fixe`);
     if (st.livret) left.push(`${st.livret} mouvement${st.livret > 1 ? "s" : ""} du livret`);
     if (st.dup + st.twin) left.push(`${st.dup + st.twin} déjà dans l'appli`);
-    if (st.skipped) left.push(`${st.skipped} en attente, annulée${st.skipped > 1 ? "s" : ""} ou illisible${st.skipped > 1 ? "s" : ""}`);
+    if (st.skipped) left.push(`${st.skipped} annulée${st.skipped > 1 ? "s" : ""} ou illisible${st.skipped > 1 ? "s" : ""}`);
     const total = now.length + older.length;
+    IMP.useBal = balance !== null && (typeof S.bal !== "number" || !S.balAt || max >= S.balAt);
+    const sum1 = sum(now, (it) => it.amount);
     openModal({
-      title: "Relevé Revolut", save: total ? `Ajouter ${now.length + older.length} dépense${total > 1 ? "s" : ""}` : "",
-      body: `<p class="txt">${st.read} ligne${st.read > 1 ? "s" : ""} lue${st.read > 1 ? "s" : ""}.${left.length ? " Laissé de côté : " + left.join(", ") + "." : ""}</p>` +
-        (now.length ? `<div><div class="day" style="padding-top:0">Depuis le ${dLong(P.start)} : décoche ce qui n'est pas une dépense, corrige la catégorie</div>${now.map((it, i) => `<div class="check"><button type="button" class="tick" style="margin-left:-8px" data-act="impTick" data-i="${i}" aria-pressed="true" aria-label="Compter ${esc(it.label)}">${tickSvg}</button><span class="lbl">${esc(it.label)}<small>${relDay(it.date)}, ${e2(it.amount)}</small></span><select data-imp="${i}" aria-label="Catégorie de ${esc(it.label)}">${opts(it.cat)}</select></div>`).join("")}</div>` : `<p class="txt">Aucune nouvelle dépense depuis le ${dLong(P.start)}.</p>`) +
-        (older.length ? `<p class="txt muted">Plus ${older.length} dépense${older.length > 1 ? "s" : ""} des mois d'avant, rangée${older.length > 1 ? "s" : ""} automatiquement. Elles ne changent pas ce qu'il te reste ce mois-ci.</p>` : ""),
+      title: "Relevé Revolut", save: total ? `Ajouter ${total} dépense${total > 1 ? "s" : ""}` : IMP.useBal ? "Reprendre le solde" : "",
+      body: `<p class="txt">${st.read} ligne${st.read > 1 ? "s" : ""} lue${st.read > 1 ? "s" : ""}${st.pending ? `, dont ${st.pending} en attente, comptée${st.pending > 1 ? "s" : ""} comme débitée${st.pending > 1 ? "s" : ""}` : ""}.${left.length ? " Laissé de côté : " + left.join(", ") + "." : ""}</p>` +
+        (IMP.useBal ? `<p class="txt">Solde de ton compte d'après ce relevé${NB}: <b>${e2(balance)}</b>. L'appli repart de ce montant.</p>` : "") +
+        (now.length ? `<div><div class="day" style="padding-top:0">${now.length} dépense${now.length > 1 ? "s" : ""} depuis le ${dLong(P.start)}, pour ${e2(sum1)}. Corrige une catégorie si besoin.</div>${now.map((it, i) => `<div class="check"><button type="button" class="tick" style="margin-left:-8px" data-act="impTick" data-i="${i}" aria-pressed="true" aria-label="Compter ${esc(it.label)}">${tickSvg}</button><span class="lbl">${esc(it.label)}<small>${relDay(it.date)}, ${e2(it.amount)}</small></span><select data-imp="${i}" aria-label="Catégorie de ${esc(it.label)}">${opts(it.cat)}</select></div>`).join("")}</div>` : `<p class="txt">Aucune nouvelle dépense depuis le ${dLong(P.start)}.</p>`) +
+        (older.length ? `<p class="txt muted">Plus ${older.length} dépense${older.length > 1 ? "s" : ""} d'avant le ${dLong(P.start)}, rangée${older.length > 1 ? "s" : ""} automatiquement.</p>` : ""),
       onSave() { importApply(); },
     });
   }
   function importApply() {
-    const { P, now, older, fixedNow, twins } = IMP;
-    for (const s of $$("select[data-imp]", modal)) now[Number(s.dataset.imp)].cat = s.value;
-    let pre = 0, n = 0;
+    const { P, now, older, fixedNow, twins, salaryDates, livretNow, balance, min, max } = IMP;
+    for (const sel of $$("select[data-imp]", modal)) now[Number(sel.dataset.imp)].cat = sel.value;
+    let n = 0;
     const push = (it) => { S.expenses.push({ id: uid(), date: it.date, amount: it.amount, cat: it.cat, note: it.label.slice(0, 40), src: "revolut", key: it.key, at: Date.now() }); S.csvKeys.push(it.key); n++; };
     for (const it of now) {
+      if (it.cat !== it.guess) S.rules[norm(it.label)] = it.cat;      // retenu pour les prochains relevés
       if (!it.include) { S.ignoredKeys.push(it.key); continue; }
       push(it);
-      if (S.setupKey === P.key && S.setupAt && it.date <= S.setupAt) pre += it.amount;
     }
     for (const it of older) push(it);
     for (const t of twins) { const e = S.expenses.find((e) => e.id === t.id); if (e) e.key = t.key; S.csvKeys.push(t.key); }
-    // Les dépenses détaillées d'avant l'installation remplacent le montant « sans détail »
-    if (pre > 0) {
-      const av = S.expenses.find((e) => e.cat === "avant" && e.date >= P.s && e.date <= P.e);
-      const cut = av ? Math.min(av.amount, pre) : 0;
-      if (av) { av.amount = r2(av.amount - cut); if (av.amount < 0.005) S.expenses = S.expenses.filter((e) => e !== av); }
-      if (S.balanceSet) S.carry = r2(S.carry + (pre - cut));
-    }
+    // Le relevé donne le détail : les montants « sans détail » de la même période n'ont plus lieu d'être
+    S.expenses = S.expenses.filter((e) => !(e.src === "solde" && e.date >= min && e.date <= max));
     if (fixedNow.length) { S.paid[P.key] = S.paid[P.key] || {}; for (const id of fixedNow) S.paid[P.key][id] = true; }
+    for (const d of salaryDates) {                                    // la paie : pour ce mois-ci, ou arrivée en avance pour le suivant
+      const k = periodOf(addD(pISO(d), 6)).key;
+      if (k === P.key) S.got[P.key] = Object.assign({}, S.got[P.key], { salary: true });
+      else if (k === iso(P.next)) S.early = k;
+    }
+    if (livretNow && !S.asideDone[P.key]) { S.asideDone[P.key] = true; S.livret = r2(S.livret + S.aside); }
+    if (IMP.useBal) {
+      // le solde du relevé, moins ce que tu as saisi à la main pour des jours que le relevé ne couvre pas encore
+      S.bal = r2(balance - sum(S.expenses.filter((e) => e.src === "manuel" && e.hit && !e.key && e.date > max), (e) => e.amount));
+      S.balAt = max;
+    }
     if (S.csvKeys.length > 6000) S.csvKeys = S.csvKeys.slice(-6000);
-    save(); closeModal(); IMP = null; render(); toast(n ? `${n} dépense${n > 1 ? "s" : ""} ajoutée${n > 1 ? "s" : ""}` : "Rien à ajouter");
+    const useBal = IMP.useBal;
+    save(); closeModal(); IMP = null; render();
+    toast(n ? `${n} dépense${n > 1 ? "s" : ""} ajoutée${n > 1 ? "s" : ""}${useBal ? ", solde repris du relevé" : ""}` : useBal ? "Solde repris du relevé" : "Rien à ajouter");
   }
   $("#csvFile").addEventListener("change", (e) => {
     const file = e.target.files[0]; e.target.value = ""; if (!file) return;
@@ -1233,22 +1287,30 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
   });
   function claudeText() {
     const P = cur(), c = compute(P), L = [];
-    L.push("Voici mon budget, tiré de mon appli « Fin de mois ». Aide-moi à voir où je peux dépenser moins.");
+    L.push("Voici mes comptes, tirés de mon appli « Fin de mois ». Aide-moi à voir où je peux dépenser moins.");
     L.push("");
-    L.push(`Mois en cours : du ${dLong(P.start)} au ${dLong(P.end)} (jour ${c.elapsed} sur ${P.days}).`);
-    L.push(`Salaire : ${eA(S.salary)}. Fixe : ${eA(c.fixe)} (${S.fixed.map((f) => `${f.name} ${eA(f.amount)}`).join(", ")}). De côté : ${eA(S.aside)} par mois, ${eA(S.livret)} déjà sur le livret.`);
-    L.push(`À dépenser ce mois-ci : ${eA(c.aDep)}. Dépensé : ${e2(c.spent)}${c.covered.length ? " (hors argent gardé à part)" : ""}. Il me reste : ${e2(c.reste)}, soit ${e0(c.perDay)} par jour pendant ${c.left} jours.`);
+    L.push(`Aujourd'hui, ${dLong(today())}. Mon mois va du ${dLong(P.start)} au ${dLong(P.end)} (jour ${c.elapsed} sur ${P.days}).`);
+    if (c.known) {
+      L.push(`Sur mon compte : ${e2(c.bal)}.`);
+      for (const k of c.coming) L.push(`À venir : ${k.name} ${eA(k.amount)}.`);
+      L.push(`Factures encore à venir ce mois-ci : ${eA(c.bills)}${c.unpaid.length ? " (" + c.unpaid.map((f) => `${f.name} ${eA(f.amount)}`).join(", ") + ")" : ""}.`);
+      L.push(c.livret ? `Pour mon livret, pas encore viré : ${eA(c.livret)}.` : "Mon livret est déjà alimenté ce mois-ci.");
+      for (const k of c.kept) L.push(`Gardé pour ${k.name} : ${eA(k.amount)}.`);
+      L.push(c.vivre >= 0 ? `Il me reste pour vivre jusqu'au ${dLong(P.end)} : ${e2(c.vivre)}, soit ${e0(c.perDay)} par jour.` : `Il me manque ${e2(-c.vivre)} pour tout payer.`);
+    }
     L.push("");
-    L.push("Par catégorie (dépensé / prévu) :");
+    L.push(`Mon mois type : salaire ${eA(S.salary)}, fixe ${eA(c.fixe)} (${S.fixed.map((f) => `${f.name} ${eA(f.amount)}`).join(", ")}), ${eA(S.aside)} de côté, donc ${eA(c.base)} à dépenser. Déjà sur le livret : ${eA(S.livret)}.`);
+    L.push("");
+    L.push(`Mes dépenses connues de l'appli depuis le ${dLong(P.start)} : ${e2(c.total)}. Par catégorie (dépensé / prévu par mois) :`);
     for (const k of S.cats) L.push(`- ${k.name} : ${e2(c.byCat[k.id] || 0)} / ${eA(k.budget)}`);
-    L.push(`- Autres : ${e2(c.byCat.autres || 0)} / ${eA(c.autres)}`);
-    for (const r of c.res) L.push(`- ${r.name} (prévu à part) : ${e2(r.spent)} / ${eA(r.amount)}`);
-    if (c.byCat.avant) L.push(`- Dépensé avant l'installation de l'appli, sans détail : ${e2(c.byCat.avant)}`);
-    const real = c.list.filter((e) => e.cat !== "avant").sort((a, b) => (a.date < b.date ? -1 : 1));
-    if (real.length) { L.push(""); L.push("Dépenses du mois :"); for (const e of real) L.push(`- ${e.date.slice(8)}/${e.date.slice(5, 7)} : ${e2(e.amount)}, ${catName(e.cat, P)}${e.note ? " (" + e.note + ")" : ""}`); }
+    L.push(`- Autres : ${e2(c.byCat.autres || 0)} / ${eA(r2(c.base - sum(S.cats, (k) => k.budget)))}`);
+    for (const u of S.upcoming) if (u.amount < 0 && u.ym === P.ym) L.push(`- ${u.name} (prévu à part) : ${e2(c.byCat[u.id] || 0)} / ${eA(-u.amount)}`);
+    if (c.byCat.sansdetail) L.push(`- Sans détail (baisse du solde constatée) : ${e2(c.byCat.sansdetail)}`);
+    const real = c.list.filter((e) => e.cat !== "sansdetail").sort((a, b) => (a.date < b.date ? -1 : 1));
+    if (real.length) { L.push(""); L.push("Détail :"); for (const e of real) L.push(`- ${e.date.slice(8)}/${e.date.slice(5, 7)} : ${e2(e.amount)}, ${catName(e.cat, P)}${e.note ? " (" + e.note + ")" : ""}`); }
     // Les trois mois d'avant, par catégorie
     const prev = []; let d = addD(P.start, -1);
-    for (let i = 0; i < 3; i++) { const Q = periodOf(d); const list = S.expenses.filter((e) => e.date >= Q.s && e.date <= Q.e && e.cat !== "avant"); if (list.length) prev.push([Q, list]); d = addD(Q.start, -1); }
+    for (let i = 0; i < 3; i++) { const Q = periodOf(d); const list = S.expenses.filter((e) => e.date >= Q.s && e.date <= Q.e); if (list.length) prev.push([Q, list]); d = addD(Q.start, -1); }
     if (prev.length) {
       L.push(""); L.push("Mois précédents :");
       for (const [Q, list] of prev) { const by = {}; for (const e of list) { const n = catName(e.cat, Q); by[n] = r2((by[n] || 0) + e.amount); } L.push(`- du ${dLong(Q.start)} au ${dLong(Q.end)} : ${e2(sum(list, (e) => e.amount))} (${Object.entries(by).map(([n, v]) => `${n} ${e2(v)}`).join(", ")})`); }
@@ -1284,9 +1346,14 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
       case "add": openAdd(); break;
       case "edit": editExpense(id); break;
       case "all": allSheet(); break;
-      case "avant": avantSheet(); break;
-      case "revo": revoSheet(); break;
-      case "forgot": { const v = Number(el.dataset.v); closeModal(); openAdd({ amt: raw(v), cat: "autres", note: "Oubli" }); break; }
+      case "compte": compteSheet(); break;
+      case "csTick": {
+        const k = el.dataset.kind;
+        if (k === "aside") CS.aside = !CS.aside; else if (k === "early") CS.early = !CS.early; else { const m = { paid: CS.paid, got: CS.got, done: CS.done }[k]; if (m[id]) delete m[id]; else m[id] = true; }
+        el.setAttribute("aria-pressed", el.getAttribute("aria-pressed") !== "true");
+        if (S.setupDone) compteOut("csOut", "mBal"); else setupOut();
+        break;
+      }
       case "addClose": closeAdd(); break;
       case "addSave": addSave(); break;
       case "addDel": addDel(); break;
@@ -1298,8 +1365,6 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
       case "scenPick": { const s = S.scenarios.find((s) => s.id === id); if (s) { etsi.name = s.name; etsi.monthly = raw(s.monthly); renderEtsi(); view.scrollTop = 0; } break; }
       case "scenDel": { const s = S.scenarios.find((s) => s.id === id), i = S.scenarios.indexOf(s); S.scenarios = S.scenarios.filter((x) => x.id !== id); save(); etsiOut(); toast("Comparaison retirée", "Annuler", () => { S.scenarios.splice(i, 0, s); save(); if (tab === "etsi") etsiOut(); }); break; }
       case "scenSave": { const m = pos(etsi.monthly), name = etsi.name.trim(); if (!(m > 0) || !name) break; const s = S.scenarios.find((s) => norm(s.name) === norm(name)); if (s) s.monthly = m; else S.scenarios.push({ id: uid(), name, monthly: m, note: "" }); save(); etsiOut(); toast("Gardé dans tes comparaisons"); break; }
-      case "tick": { const f = S.fixed.find((f) => f.id === id), P = cur(); if (!f) break; S.paid[P.key] = S.paid[P.key] || {}; S.paid[P.key][id] = !isPaid(f, P); save(); renderKeepScroll(); break; }
-      case "asideTick": { const P = cur(), on = !S.asideDone[P.key]; if (on) { S.asideDone[P.key] = true; S.livret = r2(S.livret + S.aside); } else { delete S.asideDone[P.key]; S.livret = r2(Math.max(0, S.livret - S.aside)); } save(); renderKeepScroll(); break; }
       case "fixEdit": fixSheet(id); break;
       case "fixAdd": fixSheet(null); break;
       case "catEdit": catSheet(id); break;
@@ -1315,11 +1380,8 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
       case "modalClose": closeModal(); break;
       case "modalSave": if (M && M.onSave) M.onSave(); break;
       case "modalDel": if (M && M.onDel) M.onDel(); break;
-      case "impTick": { const it = IMP.now[Number(el.dataset.i)]; it.include = !it.include; el.setAttribute("aria-pressed", it.include); const n = IMP.now.filter((x) => x.include).length + IMP.older.length; const b = $('[data-act="modalSave"]', modal); if (b) { b.textContent = `Ajouter ${n} dépense${n > 1 ? "s" : ""}`; b.disabled = !n; } break; }
-      case "suAside": SU.aside = el.dataset.v === "1"; for (const b of $$('[data-act="suAside"]')) b.setAttribute("aria-pressed", b === el); setupOut(); break;
-      case "suTick": SU.paid[id] = !SU.paid[id]; el.setAttribute("aria-pressed", SU.paid[id]); setupOut(); break;
-      case "suGo": setupGo(false); break;
-      case "suSkip": setupGo(true); break;
+      case "impTick": { const it = IMP.now[Number(el.dataset.i)]; it.include = !it.include; el.setAttribute("aria-pressed", it.include); const n = IMP.now.filter((x) => x.include).length + IMP.older.length; const b = $('[data-act="modalSave"]', modal); if (b) { b.textContent = n ? `Ajouter ${n} dépense${n > 1 ? "s" : ""}` : "Reprendre le solde"; b.disabled = !n && !IMP.useBal; } break; }
+      case "suGo": setupGo(); break;
       case "toastDo": { const fn = toastFn; toastEl.hidden = true; toastFn = null; if (fn) fn(); break; }
     }
   });
@@ -1333,7 +1395,7 @@ ${S.scenarios.length ? `<div class="list"><div class="head"><b>Mes comparaisons<
   /* ================= Départ ================= */
   const h = location.hash.slice(1); if (TABS.includes(h)) tab = h;
   render();
-  window.__fdm = { compute, cur, expected, readRevolut, claudeText, get state() { return S; } };
+  window.__fdm = { compute, cur, readRevolut, claudeText, get state() { return S; } };
 })();
 </script>
 
