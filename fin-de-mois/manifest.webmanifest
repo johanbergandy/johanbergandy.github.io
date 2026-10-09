@@ -1,13 +1,13 @@
 {
   "name": "Fin de mois",
   "short_name": "Fin de mois",
-  "description": "Ce qu'il te restera à la fin du mois, et ce que change une dépense avant de la faire.",
+  "description": "Ce qu'il te reste à dépenser ce mois-ci, et ce que change une dépense avant de la faire.",
   "lang": "fr",
-  "start_url": "./#aujourdhui",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0F5C45",
-  "theme_color": "#0F5C45",
+  "background_color": "#F2F5F4",
+  "theme_color": "#F2F5F4",
   "icons": [
     {
       "src": "icons/icon-192.png",

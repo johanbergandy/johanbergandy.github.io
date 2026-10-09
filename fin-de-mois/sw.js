@@ -1,6 +1,6 @@
-// Fin de mois : fonctionnement sans réseau. Version 8.2.
-const CACHE = "fin-de-mois-v8.2";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
+// Fin de mois : fonctionnement sans réseau. Version 9.0.
+const CACHE = "fin-de-mois-v9.0";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./fonts/bricolage.woff2", "./fonts/figtree.woff2", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const HOME = new URL("./", self.registration.scope).href;
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => {
@@ -16,7 +16,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   // Le reste (icônes, polices) : cache d'abord
-  if (url.origin === location.origin || url.hostname.endsWith("gstatic.com") || url.hostname.endsWith("googleapis.com")) {
+  if (url.origin === location.origin) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => { const c = r.clone(); caches.open(CACHE).then((x) => x.put(req, c)); return r; })));
   }
 });
