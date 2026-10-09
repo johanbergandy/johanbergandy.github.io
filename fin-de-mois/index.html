@@ -674,6 +674,22 @@ details.tri-more > .picks2 { margin-top: 8px; }
 .dots button::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--fill-2); transition: background .2s, transform .2s; }
 .dots button[aria-current]::after { background: var(--ink); opacity: .75; transform: scale(1.1); }
 
+/* ---------- v8.2 : « Tu peux encore dépenser », le calcul en carte ---------- */
+.c-keep { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; color: var(--muted); }
+.c-keep i { width: 10px; height: 10px; border-radius: 50%; background: #AF52DE; flex: none; }
+.c-keep b { color: var(--ink); font-weight: 600; }
+.card.calc { justify-content: center; }
+.calcl { display: flex; flex-direction: column; background: var(--surface); border-radius: var(--r-list); padding: 6px 16px; max-width: 340px; align-self: center; text-align: left; }
+.calcl .cl { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 16px; }
+.calcl .cl b { font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.calcl .cl.sum { border-top: .5px solid var(--line); font-weight: 600; }
+.calcl .cl.sum b { font-weight: 700; }
+.calcl .cl.keep span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #AF52DE; margin-right: 8px; vertical-align: 1px; }
+.calcl .cl.total { border-top: .5px solid var(--line); font-weight: 700; font-size: 17px; }
+.calcl .cl.total b { font-family: var(--round); font-size: 20px; font-weight: 700; color: var(--good); }
+.calcl .cl.total.neg b { color: var(--bad); }
+.card .gtext { bottom: 2px; }
+
 </style>
 
 <div class="app" id="app">
@@ -1351,21 +1367,24 @@ details.tri-more > .picks2 { margin-top: 8px; }
   function plan() { const inc = sumKind("revenu"), fix = sumKind("fixe"), vari = sumKind("enveloppe"); return { inc, fix, vari, save: round2(inc - fix - vari) }; }
   const evNet = (ym) => round2(state.events.filter((e) => e.ym === ym && !e.done).reduce((a, e) => a + (e.type === "in" ? e.amount : -e.amount), 0));
   const planMonth = (ym) => round2(plan().save + evNet(ym));
-  // Les dépenses variables forment un seul budget pour le mois (990 € par exemple) : le disponible, c'est ce budget
-  // moins tout ce qui est parti au quotidien, catégories et « Autre » compris. Tant qu'il n'est pas dépassé,
-  // ton épargne ne bouge pas ; au-delà, chaque euro en sort. Les catégories servent à voir où ça part.
+  /* ---------- Ce mois-ci, en quatre lignes ----------
+     Ce qui rentre − charges fixes − déjà dépensé = il te reste.
+     Il te reste − ton épargne prévue (celle de Mon budget) = tu peux encore dépenser.
+     Tant que tu restes dans ce montant, tu gardes ton épargne ; au-delà, elle baisse d'autant. */
   function now(mIn) {
     const m = mIn || computeMonth(ymNow());
-    const envs = m.lines.filter((l) => l.c.kind === "enveloppe");
-    const budget = round2(envs.reduce((a, l) => a + l.plan, 0));
-    const spent = round2(envs.reduce((a, l) => a + l.actual, 0) + m.uncl);
-    const room = round2(Math.max(0, budget - spent)), over = round2(Math.max(0, spent - budget));
-    const save = round2(m.inc - m.fix - Math.max(budget, spent) - m.evOut - m.car);
+    const spent = round2(m.lines.filter((l) => l.c.kind === "enveloppe").reduce((a, l) => a + l.actual, 0) + m.uncl);
+    const reste = round2(m.inc - m.fix - m.evOut - m.car - spent);
+    const keep = Math.max(0, planMonth(m.ym));
+    const dispo = round2(reste - keep);
+    const total = round2(dispo + spent);
+    const room = round2(Math.max(0, dispo)), over = round2(Math.max(0, -dispo));
+    const save = round2(Math.min(keep, reste));
     const dl = daysLeft();
     const today = mIn ? 0 : spentToday();
-    // Ta part du jour, calculée au début de la journée : ce qui restait ce matin, divisé par les jours qui restent
-    const dayAllow = round2(Math.max(0, budget - (spent - today)) / Math.max(1, dl));
-    return { m, budget, spent, room, over, save, dl, today, dayAllow, perDay: round2(room / Math.max(1, dl)), planSave: planMonth(m.ym) };
+    // Ta part du jour, calculée au début de la journée : ce que tu pouvais encore dépenser ce matin, divisé par les jours qui restent
+    const dayAllow = round2(Math.max(0, dispo + today) / Math.max(1, dl));
+    return { m, spent, reste, keep, dispo, total, budget: total, room, over, save, dl, today, dayAllow, perDay: round2(room / Math.max(1, dl)), planSave: keep };
   }
   const sv = (n, fut) => (n < 0 ? `tu ${fut ? "perdrais" : "perdras"} <b>${eur0(-n)}</b>` : `tu ${fut ? "épargnerais" : "épargneras"} <b>${eur0(n)}</b>`);
   const instead = (n) => (n < 0 ? `au lieu d'en perdre ${eur0(-n)}` : `au lieu de ${eur0(n)}`);
@@ -1506,17 +1525,16 @@ details.tri-more > .picks2 { margin-top: 8px; }
     let r1, r2 = "", cls = "";
     if (etsi.mode === "once") {
       const t0 = now();
-      if (!(a > 0)) { res.className = "etsires"; res.innerHTML = `<p class="r1">Il te reste <b>${eur0(t0.room)}</b> à dépenser ce mois-ci.</p><p class="m">En fin de mois, ${sv(t0.save).replace(/<\/?b>/g, "")}.</p>`; return; }
+      if (!(a > 0)) { res.className = "etsires"; res.innerHTML = `<p class="r1">${t0.over > 0 ? `Tu as déjà dépassé de <b>${eur0(t0.over)}</b> ce mois-ci.` : `Tu peux encore dépenser <b>${eur0(t0.room)}</b> ce mois-ci.`}</p><p class="m">En gardant ${eur0(t0.keep)} d'épargne.</p>`; return; }
       const t1 = whatIf(a, null, null);
-      const diff = round2(t0.save - t1.save);
-      if (diff < 0.5) {
+      if (t1.over < 0.5) {
         cls = "ok";
-        r1 = `Il te resterait <b>${eur0(t1.room)}</b> à dépenser ce mois-ci, au lieu de ${eur0(t0.room)}.`;
-        r2 = `<p class="m">C'est dans ton budget du mois : ton épargne ne bouge pas (${eur0(t1.save)}).</p>`;
+        r1 = `Tu pourrais encore dépenser <b>${eur0(t1.room)}</b> au lieu de ${eur0(t0.room)}.`;
+        r2 = `<p class="m">Ton épargne reste à ${eur0(t1.save)}.</p>`;
       } else {
         cls = t1.save < 0 ? "ko" : "mid";
-        r1 = `Tu dépasserais ton budget du mois de <b>${eur0(t1.over)}</b>.`;
-        r2 = `<p class="m">En fin de mois, ${sv(t1.save, true).replace(/<\/?b>/g, "")} ${instead(t0.save)}.</p>`;
+        r1 = `Tu dépasserais de <b>${eur0(t1.over)}</b>.`;
+        r2 = `<p class="m">${t1.save < 0 ? `Ce mois-ci, tu perdrais ${eur0(-t1.save)}` : `Ton épargne du mois tomberait à ${eur0(t1.save)}`} au lieu de garder ${eur0(t0.save)}.</p>`;
         if (cu0) r2 += `<p class="m">${etaCompare(cushion({ thisSave: t1.save }), cu0)}</p>`;
       }
     } else {
@@ -1567,7 +1585,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
       if (e.txs.length) html += `<div class="rows"><button class="row" data-act="opsMonth" data-ym="${prev}"><span class="name">${cap(MONTHS[Number(prev.slice(5)) - 1])} : tu as ${e.end < 0 ? `perdu ${eur0(-e.end)}` : `épargné ${eur0(e.end)}`}</span>${ICON.chev}</button></div>`;
     }
     app.innerHTML = html;
-    tweenFree(t.room);
+    tweenFree(t.over > 0 ? t.over : t.room);
     watchCards();
   }
 
@@ -1584,29 +1602,32 @@ details.tri-more > .picks2 { margin-top: 8px; }
   let cardIdx = 0;
   function cardsHtml(t) {
     const dim = daysIn(t.m.ym);
-    // 1. Disponible ce mois-ci
-    const pace = t.budget > 0 ? t.dl / dim : null;
-    const m1 = t.over > 0 ? "red" : t.budget > 0 && t.room / t.budget < pace - 0.02 ? "tight" : "calm";
-    const f1 = m1 === "red" ? `Budget du mois dépassé de <b>${eur0(t.over)}</b> : ça sort de ton épargne.` : m1 === "tight" ? "Tu vas un peu vite : le trait montre où tu devrais en être aujourd'hui." : "Tu es dans les temps.";
-    const c1 = `<button class="card" data-act="how" data-mood="${m1}" aria-label="Disponible ce mois-ci : ${eur0(t.room)} sur ${eur0(t.budget)}">
-      <span class="c-label">Disponible ce mois-ci</span>
-      <span class="gwrap">${gauge(t.budget > 0 ? t.room / t.budget : 0, pace)}<span class="gtext"><span class="big" id="freeNum">${eur0(shownFree ?? t.room)}</span><span class="g-sub">sur ${eur0(t.budget)}${t.dl > 1 && t.room > 0 ? ` · ${eur0(t.perDay)} par jour` : ""}</span></span></span>
-      <span class="c-foot">${f1}</span></button>`;
-    // 2. Aujourd'hui
+    // 1. Tu peux encore dépenser
+    const pace = t.total > 0 ? t.dl / dim : null;
+    const m1 = t.over > 0 ? "red" : t.total > 0 && t.room / t.total < pace - 0.02 ? "tight" : "calm";
+    const foot1 = t.over > 0 ? (t.save < 0 ? `Ce mois-ci, tu perds <b>${eur0(-t.save)}</b> au lieu de garder ${eur0(t.keep)}.` : `Ton épargne du mois tombe à <b>${eur0(t.save)}</b> au lieu de ${eur0(t.keep)}.`) : m1 === "tight" ? "Tu vas un peu vite : le trait montre où tu devrais en être aujourd'hui." : "Tu es dans les temps.";
+    const c1 = `<button class="card" data-act="card" data-i="1" data-mood="${m1}" aria-label="${t.over > 0 ? `Dépassé de ${eur0(t.over)}` : `Tu peux encore dépenser ${eur0(t.room)} sur ${eur0(t.total)}`}. Voir le calcul">
+      <span class="c-label">${t.over > 0 ? "Tu as dépassé de" : "Tu peux encore dépenser"}</span>
+      <span class="gwrap">${gauge(t.total > 0 ? t.room / t.total : 0, t.over > 0 ? null : pace)}<span class="gtext"><span class="big" id="freeNum">${eur0(shownFree ?? (t.over > 0 ? t.over : t.room))}</span></span></span>
+      <span class="g-sub">${t.over > 0 ? "de plus que ce que tu pouvais dépenser ce mois-ci" : `sur ${eur0(t.total)} ce mois-ci${t.dl > 1 && t.room > 0 ? `, soit ${eur0(t.perDay)} par jour` : ""}`}</span>
+      ${t.over > 0 ? "" : `<span class="c-keep"><i aria-hidden="true"></i>En gardant <b>${eur0(t.keep)}</b> d'épargne</span>`}
+      <span class="c-foot">${foot1}</span></button>`;
+    // 2. Le calcul, en quatre lignes
+    const L = [["Ce qui rentre", eur0(t.m.inc), ""], ["Charges fixes", `− ${eur0(t.m.fix)}`, ""]];
+    if (t.m.evOut) L.push(["Prévu ce mois-ci", `− ${eur0(t.m.evOut)}`, ""]);
+    L.push(["Déjà dépensé", `− ${eur0(t.spent)}`, ""], ["Il te reste", eur0(t.reste), "sum"], ["Ton épargne", `− ${eur0(t.keep)}`, "keep"], [t.over > 0 ? "Dépassement" : "Tu peux dépenser", eur0(Math.abs(t.dispo)), `total${t.over > 0 ? " neg" : ""}`]);
+    const c2 = `<button class="card calc" data-act="how" data-mood="calm" aria-label="Le calcul. Voir le détail">
+      <span class="c-label">Le calcul</span>
+      <span class="calcl">${L.map(([k, v, cls]) => `<span class="cl ${cls}"><span>${k}</span><b>${v}</b></span>`).join("")}</span>
+      <span class="c-foot">Touche pour le détail.</span></button>`;
+    // 3. Aujourd'hui
     const left = round2(Math.max(0, t.dayAllow - t.today)), past = round2(Math.max(0, t.today - t.dayAllow));
-    const m2 = past > 0 ? "red" : t.dayAllow > 0 && left / t.dayAllow < 0.25 ? "tight" : "calm";
-    const c2 = `<button class="card" data-act="how" data-mood="${m2}" aria-label="Disponible aujourd'hui : ${eur0(left)}">
-      <span class="c-label">Disponible aujourd'hui</span>
-      <span class="gwrap">${gauge(t.dayAllow > 0 ? left / t.dayAllow : 0, null)}<span class="gtext"><span class="big">${eur0(left)}</span><span class="g-sub">sur ${eur0(t.dayAllow)} pour aujourd'hui</span></span></span>
+    const m3 = past > 0 ? "red" : t.dayAllow > 0 && left / t.dayAllow < 0.25 ? "tight" : "calm";
+    const c3 = `<button class="card" data-act="how" data-mood="${m3}" aria-label="Aujourd'hui : ${eur0(left)} à dépenser">
+      <span class="c-label">Aujourd'hui, tu peux dépenser</span>
+      <span class="gwrap">${gauge(t.dayAllow > 0 ? left / t.dayAllow : 0, null)}<span class="gtext"><span class="big">${eur0(left)}</span></span></span>
+      <span class="g-sub">sur ${eur0(t.dayAllow)} pour aujourd'hui</span>
       <span class="c-foot">${past > 0 ? `<b>${eur0(past)} de plus</b> que ta part du jour : demain, elle sera plus petite.` : t.today > 0 ? `Déjà dépensé aujourd'hui : <b>${eur0(t.today)}</b>.` : "Rien de dépensé aujourd'hui."}</span></button>`;
-    // 3. Ton épargne
-    const d = round2(t.save - t.planSave), cu = cushion();
-    const m3 = t.save < 0 ? "red" : d < -1 ? "tight" : "calm";
-    const c3 = `<button class="card save" data-act="how" data-mood="${m3}" aria-label="En fin de mois, épargne de ${eur0(t.save)}">
-      <span class="c-label">${t.save < 0 ? "En fin de mois, tu perdras" : "En fin de mois, tu épargneras"}</span>
-      <span class="big">${eur0(Math.abs(t.save))}</span>
-      <span class="g-sub">${Math.abs(d) < 1 ? "Comme prévu dans ton budget" : d < 0 ? `<b>${eur0(-d)} de moins</b> que prévu (${eur0(t.planSave)})` : `<b>${eur0(d)} de plus</b> que prévu (${eur0(t.planSave)})`}</span>
-      ${cu ? `<span class="c-cushion"><span><b>${esc(cu.g.name)}</b> : ${eur0(cu.have)} sur ${eur0(cu.g.target)}</span><i aria-hidden="true"><b style="width:${cu.pct}%"></b></i><span>${cap(etaText(cu))}</span></span>` : ""}</button>`;
     return `<section class="cards" aria-label="Ce mois-ci, en trois cartes"><div class="track" id="cardTrack">${c1}${c2}${c3}</div>
       <div class="dots" role="group" aria-label="Cartes">${[0, 1, 2].map((i) => `<button data-act="card" data-i="${i}" aria-label="Carte ${i + 1} sur 3" ${i === cardIdx ? 'aria-current="true"' : ""}></button>`).join("")}</div></section>`;
   }
@@ -1630,21 +1651,24 @@ details.tri-more > .picks2 { margin-top: 8px; }
   function howSheet() {
     const t = now(), m = t.m;
     const rows = (list) => list.map(([k, v, cls = ""]) => `<dt class="${cls}">${k}</dt><dd class="${cls}">${v}</dd>`).join("");
-    const inc = m.lines.filter((l) => l.c.kind === "revenu" && (l.counted || l.has)).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "reçu" : "à venir"})</span>`, `+ ${eur(l.counted)}`]).concat(m.events.filter((e) => e.type === "in").map((e) => [`${esc(e.label)} <span class="tag">(prévu)</span>`, `+ ${eur(e.amount)}`]));
+    const inc = m.lines.filter((l) => l.c.kind === "revenu" && (l.counted || l.has)).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "reçu" : "à venir"})</span>`, `+ ${eur(l.counted)}`]).concat(m.events.filter((e) => e.type === "in").map((e) => [`${esc(e.label)} <span class="tag">(mois particulier)</span>`, `+ ${eur(e.amount)}`]));
     const fix = m.lines.filter((l) => l.c.kind === "fixe" && l.counted).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "payée" : "à venir"})</span>`, `− ${eur(l.counted)}`]);
-    const env = [[`${t.over > 0 ? "Dépensé" : "Budget du mois"} <span class="tag">(${t.over > 0 ? `budget de ${eur0(t.budget)} dépassé` : `dépensé ${eur0(t.spent)}, disponible ${eur0(t.room)}`})</span>`, `− ${eur(Math.max(t.budget, t.spent))}`]];
+    const evo = m.events.filter((e) => e.type === "out").map((e) => [`${esc(e.label)} <span class="tag">(mois particulier)</span>`, `− ${eur(e.amount)}`]);
+    const env = m.lines.filter((l) => l.c.kind === "enveloppe" && Math.abs(l.actual) >= 0.005).map((l) => [esc(l.c.name), `− ${eur(l.actual)}`]).concat(m.uncl ? [[`Autre <span class="tag">(pas reconnu)</span>`, `− ${eur(m.uncl)}`]] : []);
     const cov = coverage();
-    openSheet(`<h2>Comment c'est calculé</h2>
-      <p class="meta">Ce qui rentre ce mois-ci, moins ce qui part ou partira.</p>
+    const mn = MONTHS[Number(m.ym.slice(5)) - 1];
+    openSheet(`<h2>Le calcul ${/^[aeiou]/.test(mn) ? "d'" : "de "}${mn}</h2>
       <dl class="summary">
-        <span class="grp">Revenus</span>${rows(inc.length ? inc : [["Rien de prévu", "0 €"]])}
+        <span class="grp">Ce qui rentre</span>${rows(inc.length ? inc : [["Rien de prévu", "0 €"]])}
         <span class="grp">Charges fixes</span>${rows(fix.length ? fix : [["Aucune", "0 €"]])}
-        <span class="grp">Dépenses variables</span>${rows(env.length ? env : [["Aucune", "0 €"]])}
-        ${m.evOut ? `<span class="grp">Prévu ce mois-ci</span>${rows(m.events.filter((e) => e.type === "out").map((e) => [esc(e.label), `− ${eur(e.amount)}`]))}` : ""}
-        ${rows([[t.save < 0 ? "En fin de mois, tu perdras" : "En fin de mois, tu épargneras", eur(Math.abs(t.save)), "total"]])}
+        ${evo.length ? `<span class="grp">Prévu ce mois-ci</span>${rows(evo)}` : ""}
+        <span class="grp">Déjà dépensé</span>${rows(env.length ? env : [["Rien pour l'instant", "0 €"]])}
+        ${rows([["Il te reste", eur(t.reste), "total"]])}
+        ${rows([["Ton épargne prévue", `− ${eur(t.keep)}`]])}
+        ${rows([[t.over > 0 ? "Dépassement" : "Tu peux encore dépenser", eur(Math.abs(t.dispo)), "total"]])}
       </dl>
-      <p class="hint">Tes dépenses variables comptent pour ton budget du mois (${eur0(t.budget)}) tant que tu ne le dépasses pas : le disponible baisse, ton épargne ne bouge pas. Au-delà, chaque euro sort de ton épargne. Une charge fixe compte pour son vrai montant dès qu'elle est payée.</p>
-      <p class="hint">${cov ? `Relevé importé jusqu'au ${shortDate(cov)}. Ce que tu as payé depuis compte dès que tu l'ajoutes.` : "Aucun relevé importé : seuls ton budget et tes ajouts comptent."}</p>`, "Comment c'est calculé");
+      <p class="hint">Ton épargne prévue vient de Mon budget : ce qui rentre, moins tes charges fixes et tes dépenses variables prévues. Tant que tu restes dans « Tu peux encore dépenser », tu la gardes. Au-delà, elle baisse d'autant.</p>
+      <p class="hint">${cov ? `Relevé importé jusqu'au ${shortDate(cov)}. Ce que tu as payé depuis compte dès que tu l'ajoutes.` : "Aucun relevé importé : seuls ton budget et tes ajouts comptent."}</p>`, "Le calcul");
   }
 
   const dShort = (iso) => { const [, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS_S[m - 1]}`; };
@@ -1844,14 +1868,14 @@ details.tri-more > .picks2 { margin-top: 8px; }
     amtEl.className = "addamt num" + (typed ? "" : " blank");
     amtEl.innerHTML = `${typed ? esc(typed) : "0"}<span class="cur">€</span>`;
     const t0 = now();
-    if (!(a > 0)) { aft.className = "after"; aft.innerHTML = `<span>Disponible ce mois-ci : <b>${eur0(t0.room)}</b></span>`; return; }
+    if (!(a > 0)) { aft.className = "after"; aft.innerHTML = t0.over > 0 ? `<span>Déjà <b>${eur0(t0.over)}</b> de dépassement ce mois-ci</span>` : `<span>Tu peux encore dépenser <b>${eur0(t0.room)}</b> ce mois-ci</span>`; return; }
     if (padDate && ymOf(padDate) < ymNow()) { aft.className = "after"; aft.innerHTML = `<span>Comptée en ${MONTHS[Number(padDate.slice(5, 7)) - 1]}, pas sur ce mois-ci</span>`; return; }
-    if ((document.getElementById("addCash") || {}).checked) { aft.className = "after"; aft.innerHTML = `<span>En liquide : déjà compté au retrait. Toujours <b>${eur0(t0.room)}</b> de disponible</span>`; return; }
+    if ((document.getElementById("addCash") || {}).checked) { aft.className = "after"; aft.innerHTML = `<span>En liquide : déjà compté au retrait. Toujours <b>${eur0(t0.room)}</b> à dépenser</span>`; return; }
     const t1 = whatIf(a, padCat, padDate);
     const c = padCat ? cat(padCat) : null;
     let txt, cls = "after";
     if (t1.over < 0.5) txt = `Il te restera <b>${eur0(t1.room)}</b> à dépenser ce mois-ci`;
-    else { cls += t1.save < 0 ? " ko" : " mid"; txt = `Budget du mois dépassé de <b>${eur0(t1.over)}</b> : en fin de mois, ${sv(t1.save).replace(/<\/?b>/g, "")}`; }
+    else { cls += t1.save < 0 ? " ko" : " mid"; txt = `Tu dépasseras de <b>${eur0(t1.over)}</b> : ${t1.save < 0 ? `ce mois-ci, tu perdras ${eur0(-t1.save)}` : `ton épargne du mois tombe à ${eur0(t1.save)}`}`; }
     const l1 = c ? t1.m.lines.find((x) => x.c.id === c.id) : null;
     const extra = l1 && l1.plan > 0 && l1.actual > l1.plan ? `<span class="v3">${esc(c.name)} : ${eur0(l1.actual - l1.plan)} de plus que prévu</span>` : "";
     aft.className = cls;
