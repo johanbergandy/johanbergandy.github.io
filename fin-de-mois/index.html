@@ -579,6 +579,67 @@ details.tri-more > .picks2 { margin-top: 8px; }
 .switch.addcash { background: var(--surface); border-radius: var(--r-list); padding: 8px 12px 8px 16px; }
 .switch.addcash span { font-size: 16px; }
 
+/* ---------- v8 : Mon budget (le tableau), Et si…, Ce mois-ci ---------- */
+/* Le tableau : chaque montant est une case qu'on touche pour la changer */
+.row.pline { grid-template-columns: 30px minmax(0, 1fr) auto; column-gap: 12px; padding-block: 6px; }
+.row.pline .tile { grid-row: auto; }
+.pname { border: 0; background: none; padding: 8px 0; margin: 0; text-align: left; color: inherit; min-height: 40px; min-width: 0; display: flex; align-items: center; }
+.pname .name { font-size: 17px; }
+.pname:active { opacity: .5; }
+.pamt { display: inline-flex; align-items: baseline; gap: 3px; background: var(--fill); border-radius: 9px; padding: 0 10px; min-height: 38px; align-items: center; cursor: text; transition: box-shadow .15s, background .15s; }
+.pamt input { width: 5.2ch; min-width: 0; border: 0; background: transparent; text-align: right; font: inherit; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); padding: 0; outline: none; }
+.pamt input::placeholder { color: var(--faint); }
+.pamt span { color: var(--muted); font-size: 15px; }
+.pamt:focus-within { background: var(--surface); box-shadow: 0 0 0 2px var(--accent); }
+.pamt.bad { box-shadow: 0 0 0 2px var(--red); }
+.row.addrow { display: flex; align-items: center; gap: 10px; color: var(--accent); font-size: 16px; min-height: 48px; }
+.row.addrow svg { width: 20px; height: 20px; flex: none; }
+.rows > .pline + *::before { left: 58px; }
+
+.hero.plan { gap: 4px; }
+.hero.plan .h-label { font-size: 17px; font-weight: 600; color: var(--muted); }
+.hero.plan .per { font-size: 17px; color: var(--muted); margin-top: 2px; }
+.hero.plan[data-mood="red"] .big { color: var(--bad); }
+.cushion { margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; width: 100%; text-align: left; border: 0; background: var(--surface); border-radius: var(--r-list); padding: 13px 16px 14px; color: var(--ink); transition: opacity .15s; }
+.cushion:active { opacity: .6; }
+.cushion .ct { font-size: 16px; }
+.cushion .ct b { font-weight: 600; }
+.cushion .cs { font-size: 15px; color: var(--muted); }
+.cushion .cbar { display: block; height: 6px; border-radius: 3px; background: var(--fill-2); overflow: hidden; margin-top: 6px; }
+.cushion .cbar b { display: block; height: 100%; background: #AF52DE; border-radius: 3px; }
+
+/* Le résultat qui suit en bas de l'écran pendant qu'on remplit le tableau */
+.savebar { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 10px); z-index: 18; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; display: flex; align-items: baseline; gap: 8px; padding: 10px 18px; border-radius: 22px; background: var(--chrome-solid); box-shadow: 0 6px 24px rgba(0, 0, 0, .14), 0 0 0 .5px var(--hair); font-size: 15px; color: var(--muted); white-space: nowrap; transition: transform .3s var(--ios), opacity .2s; }
+.savebar b { color: var(--ink); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.savebar[data-mood="red"] b { color: var(--bad); }
+.savebar.on { transform: translate(-50%, 0); opacity: 1; }
+
+/* Et si… */
+.etsires { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; min-height: 46px; margin-top: -2px; }
+.etsires .r1 { font-size: 17px; line-height: 23px; color: var(--ink); }
+.etsires .r1 b { font-family: var(--round); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.etsires.ok .r1 b { color: var(--good); }
+.etsires.mid .r1 b { color: var(--warn); }
+.etsires.ko .r1 b { color: var(--bad); }
+.etsires .m { font-size: 15px; color: var(--muted); }
+#etsiCats[hidden] { display: none; }
+#etsiCats { display: flex; flex-direction: column; gap: 8px; }
+#etsiCats .flabel { font-size: 13px; color: var(--muted); padding-inline: 4px; }
+.seg.big button { min-height: 36px; font-size: 15px; }
+.row.cmp .sub { grid-column: 1 / -1; line-height: 20px; }
+.row .amt.neg { color: var(--bad); }
+.row .amt .tag { font-size: 13px; color: var(--muted); }
+
+/* Ce mois-ci */
+.hero .room { font-size: 15px; line-height: 20px; color: var(--muted); }
+.hero .room b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hero[data-mood="red"] .big { color: var(--bad); }
+.after .v2 { color: var(--muted); font-size: 14px; }
+.onb { padding-top: 40px; gap: 18px; }
+.app:has(.savebar) { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 84px); }
+.evmonth .daygroup { padding: 2px 4px 6px; font-size: 15px; }
+.evmonth + .evmonth { margin-top: 6px; }
+
 </style>
 
 <div class="app" id="app">
@@ -587,15 +648,15 @@ details.tri-more > .picks2 { margin-top: 8px; }
 
 <nav class="tabs" id="tabs" aria-label="Navigation" hidden>
   <ul>
-    <li><a href="#aujourdhui" data-tab="aujourdhui">
-      <svg class="o" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13.2L14 4.6l10 8.6"/><path d="M6.8 11v12.4h5.2v-6.6h4v6.6h5.2V11"/></svg>
-      <svg class="f" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 3.4a1.3 1.3 0 0 1 .85.32l9.9 8.5a1.1 1.1 0 0 1-1.43 1.67L22.2 13V23a1.6 1.6 0 0 1-1.6 1.6h-4.1v-6.8h-5v6.8H7.4A1.6 1.6 0 0 1 5.8 23V13l-1.12.9a1.1 1.1 0 0 1-1.43-1.67l9.9-8.5A1.3 1.3 0 0 1 14 3.4z" fill="currentColor"/></svg><span>Accueil</span></a></li>
     <li><a href="#budget" data-tab="budget">
-      <svg class="o" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="14" r="10.5"/><path d="M14 3.5V14h10.5"/></svg>
-      <svg class="f" viewBox="0 0 28 28" aria-hidden="true"><path d="M12.6 2.6A11.5 11.5 0 1 0 25.4 15.4H12.6z" fill="currentColor"/><path d="M15.4 2.6v10h10a11.5 11.5 0 0 0-10-10z" fill="currentColor"/></svg><span>Mon mois</span></a></li>
-    <li><a href="#epargne" data-tab="epargne">
-      <svg class="o" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11.5" width="20" height="13" rx="2.5"/><path d="M8.5 11.5V9a5.5 5.5 0 0 1 11 0v2.5"/><path d="M14 16.5v3"/></svg>
-      <svg class="f" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 11V9a6 6 0 0 1 12 0v2" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="3.5" y="11" width="21" height="14" rx="2.8" fill="currentColor"/><path d="M14 16v3.5" stroke="var(--tab-cut)" stroke-width="2.2" stroke-linecap="round"/></svg><span>Épargne</span></a></li>
+      <svg class="o" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="20" height="18" rx="3"/><path d="M4 11h20M4 17h20M12 11v12"/></svg>
+      <svg class="f" viewBox="0 0 28 28" aria-hidden="true"><rect x="3.5" y="4.5" width="21" height="19" rx="3.4" fill="currentColor"/><path d="M3.5 11h21M3.5 17h21M12 11v12.5" stroke="var(--tab-cut)" stroke-width="1.8"/></svg><span>Mon budget</span></a></li>
+    <li><a href="#etsi" data-tab="etsi">
+      <svg class="o" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 24.5V15M14 15L7 8M14 15l7-7"/><path d="M4.5 10V4.5H10M23.5 10V4.5H18"/></svg>
+      <svg class="f" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 24.5V15M14 15L7 8M14 15l7-7"/><path d="M4.5 10V4.5H10M23.5 10V4.5H18"/></svg><span>Et si…</span></a></li>
+    <li><a href="#mois" data-tab="mois">
+      <svg class="o" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="20" height="18" rx="3"/><path d="M4 12h20M9.5 3.5v5M18.5 3.5v5"/></svg>
+      <svg class="f" viewBox="0 0 28 28" aria-hidden="true"><rect x="3.5" y="5.5" width="21" height="19" rx="3.4" fill="currentColor"/><path d="M3.5 12h21" stroke="var(--tab-cut)" stroke-width="1.8"/><path d="M9.5 3v5M18.5 3v5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="9.5" cy="17" r="1.5" fill="var(--tab-cut)"/><circle cx="14" cy="17" r="1.5" fill="var(--tab-cut)"/></svg><span>Ce mois-ci</span></a></li>
   </ul>
 </nav>
 
@@ -603,7 +664,6 @@ details.tri-more > .picks2 { margin-top: 8px; }
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <input type="file" id="csvInput" accept=".csv,text/csv,text/plain" class="sr" tabindex="-1" aria-hidden="true">
 <input type="file" id="backupInput" accept=".json,application/json,text/plain" class="sr" tabindex="-1" aria-hidden="true">
-<input type="file" id="journalInput" accept=".txt,text/plain" class="sr" tabindex="-1" aria-hidden="true">
 
 <script>
 (function () {
@@ -946,7 +1006,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     if (v && !v.active && v.budget > 0) opts.push({ id: "budget", label: `Voiture du budget, ${eur0(v.budget)} par mois`, monthly: v.budget });
     for (const c of state.cars) {
       if (!(c.rent > 0)) continue;
-      const monthly = round2((v && v.active ? c.rent - v.budget : c.rent) + carExtra(c));
+      const monthly = v && v.active ? round2(c.rent - v.budget) : c.rent;
       opts.push({ id: "car:" + c.id, label: `${c.name}, ${eur0(c.rent)} par mois`, monthly });
     }
     return opts;
@@ -1096,43 +1156,42 @@ details.tri-more > .picks2 { margin-top: 8px; }
   const sortTx = () => state.tx.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
 
-  /* ================= Interface v4 ================= */
+  /* ================= Fin de mois v8 : Mon budget, Et si…, Ce mois-ci =================
+     Une seule idée : combien tu épargnes, et ce que chaque dépense y change. */
   const app = document.getElementById("app");
   const tabs = document.getElementById("tabs");
   const sheetHost = document.getElementById("sheetHost");
   const toastEl = document.getElementById("toast");
   const csvInput = document.getElementById("csvInput");
   const backupInput = document.getElementById("backupInput");
-  const journalInput = document.getElementById("journalInput");
   const IN_CLAUDE = !!(window.claude && window.claude.use);
 
-  const VIEWS = ["aujourdhui", "budget", "operations", "epargne", "categorie", "reglages", "iphone", "sauvegarde"];
-  const ALIAS = { mois: "aujourdhui", accueil: "aujourdhui", simuler: "aujourdhui", ajouter: "aujourdhui", plus: "reglages", point: "operations", "mon-mois": "budget", projets: "epargne", evenements: "epargne", objectifs: "epargne", voitures: "epargne", projection: "epargne" };
-  const PARENT = { categorie: "budget", operations: "budget", iphone: "reglages", sauvegarde: "reglages", reglages: "aujourdhui" };
-  const TAB_OF = { aujourdhui: "aujourdhui", budget: "budget", operations: "budget", epargne: "epargne", categorie: "budget", reglages: "aujourdhui", iphone: "aujourdhui", sauvegarde: "aujourdhui" };
-  const TITLE_OF = { aujourdhui: "Accueil", budget: "Mon mois", operations: "Opérations", epargne: "Épargne", reglages: "Réglages" };
-  // Les opérations s'ouvrent depuis l'accueil (« Tout voir ») ou depuis Mon mois : le retour ramène d'où l'on vient
-  let opsBack = "budget";
-  const parentOf = (v) => (v === "operations" ? opsBack : PARENT[v]);
-  const KIND_L = { revenu: "Revenus", fixe: "Factures", enveloppe: "Dépenses du quotidien" };
+  const TABS = ["budget", "etsi", "mois"];
+  const VIEWS = ["budget", "etsi", "mois", "operations", "categorie", "reglages", "sauvegarde"];
+  const ALIAS = { aujourdhui: "mois", accueil: "mois", ajouter: "mois", point: "operations", epargne: "etsi", projets: "etsi", voitures: "etsi", objectifs: "budget", simuler: "etsi", plus: "reglages", iphone: "reglages", "mon-budget": "budget", "ce-mois-ci": "mois", "et-si": "etsi" };
+  const TITLE_OF = { budget: "Mon budget", etsi: "Et si…", mois: "Ce mois-ci", operations: "Opérations", reglages: "Réglages", sauvegarde: "Sauvegarde" };
+  const DEFAULT_PARENT = { categorie: "budget", operations: "mois", reglages: "mois", sauvegarde: "reglages" };
+  const KIND_L = { revenu: "Revenus", fixe: "Charges fixes", enveloppe: "Dépenses variables" };
+  // Un écran de détail revient là d'où on l'a ouvert
+  let backTo = {};
+  function parentOf(v) { return TABS.includes(v) ? null : backTo[v] || DEFAULT_PARENT[v] || null; }
+  function tabOf(v) { for (let i = 0, x = v; i < 6 && x; i++, x = parentOf(x)) if (TABS.includes(x)) return x; return "mois"; }
+  const depth = (v) => { let d = 0; for (let x = parentOf(v); x && d < 6; x = parentOf(x)) d++; return d; };
 
-  let view = "aujourdhui";
+  let view = "budget";
   let viewYM = ymNow();
   let budgetYM = ymNow();
   let catView = null;
   let typed = "";
   let padCat = null;
   let padDate = null; // null = aujourd'hui
+  let etsi = { mode: "once", cat: null };
   let opsQuery = "";
   let opsOnly = false;
   let triSkip = new Set();
-  let bilanYM = null;
-  let buy = { amount: "", ym: ymShift(ymNow(), 1) };
-  let projCar = "";
-  let chartSel = {};
   let shownFree = null;
-  let onb = { step: 1, vals: {} };
   let lastFocus = null;
+  let heroObs = null;
 
   const ICON = {
     prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
@@ -1180,6 +1239,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     more: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>',
     ring: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/></svg>',
     ringok: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="currentColor"/><path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M3.5 14.5h17M10 9.5v10"/></svg>',
   };
 
   /* ---------- Familles et couleurs : le même code partout ----------
@@ -1212,28 +1272,6 @@ details.tri-more > .picks2 { margin-top: 8px; }
   function iconOf(c) { const m = CAT_META[c.id]; return ICON[m ? m[2] : c.kind === "fixe" ? "doc" : c.kind === "revenu" ? "in" : "dot"] || ICON.dot; }
   const tile = (c, cls = "") => `<span class="tile ${cls}" style="--tile:${colorOf(c)}" aria-hidden="true">${iconOf(c)}</span>`;
   const tileRaw = (color, icon, cls = "") => `<span class="tile ${cls}" style="--tile:${color}" aria-hidden="true">${ICON[icon] || ICON.dot}</span>`;
-
-  /* ---------- Reste à vivre : un seul calcul, le même partout ----------
-     Revenus du mois − factures − ce qui est déjà dépensé au quotidien − à trier − prévu − épargne.
-     Chaque dépense le fait baisser, courses comprises. « Libre » = ce qui reste une fois les budgets encore prévus mis de côté. */
-  function reste(mIn) {
-    const m = mIn || computeMonth(ymNow());
-    const t = savingTarget();
-    const envs = m.lines.filter((l) => l.c.kind === "enveloppe");
-    const spentEnv = round2(envs.reduce((a, l) => a + l.actual, 0));
-    const est = m.est && m.est.est ? m.est.est : 0;
-    const R = round2(m.inc - m.fix - spentEnv - m.uncl - m.evOut - m.car - est - t);
-    const roomsBy = { ess: 0, plaisir: 0, imprevu: 0 };
-    let rooms = 0;
-    for (const l of envs) { const r = Math.max(0, l.plan - l.actual); roomsBy[famOf(l.c)] += r; rooms += r; }
-    const k = rooms > 0 ? Math.max(0, rooms - est) / rooms : 0;
-    for (const f of FAM_ENV) roomsBy[f] = round2(roomsBy[f] * k);
-    const reserved = round2(rooms * k);
-    const libre = round2(R - reserved);
-    const dl = daysLeft();
-    const mood = R < 0 ? { key: "red", label: "Dans le rouge" } : libre < 0 ? { key: "tight", label: "Juste" } : { key: "calm", label: "À l'aise" };
-    return { R, libre, reserved, roomsBy, target: t, spentEnv, est, dl, perDay: round2(Math.max(0, R) / dl), mood, m };
-  }
 
   /* ---------- Retour au toucher (iPhone : le contrôle « switch » de Safari vibre) ---------- */
   function haptic() {
@@ -1271,65 +1309,254 @@ details.tri-more > .picks2 { margin-top: 8px; }
       <div class="lt">${sub && opts.subTop ? `<p class="lt-top">${sub}</p>` : ""}<h1>${title}</h1>${sub && !opts.subTop ? `<p class="lt-sub">${sub}</p>` : ""}</div>`;
   }
 
-  /* ================= Accueil : un chiffre, un bouton, les dernières dépenses ================= */
-  function renderAujourdhui() {
-    const ym = ymNow();
-    const r = reste();
-    const m = r.m;
-    const dim = daysIn(ym);
-    const dot = backupLate() || !storageOK;
-    let html = `<header class="nav" id="nav"><div class="nav-l"></div><p class="nav-t" aria-hidden="true">Accueil</p><div class="nav-r"><button class="navbtn" data-act="go" data-v="reglages" aria-label="Réglages">${ICON.gear}${dot ? '<span class="dot"></span>' : ""}</button></div></header>
-      <div class="lt"><p class="lt-top">${dateLong()}</p><h1 class="sr">Accueil</h1></div>`;
+  /* ---------- Le calcul, le même partout ----------
+     Mon budget : ce qui rentre − charges fixes − dépenses variables = ce que tu épargnes un mois normal.
+     Ce mois-ci : le même calcul avec le réel. Une dépense variable compte pour son budget, ou pour ce que tu as
+     déjà dépensé si c'est plus. Une charge fixe compte pour son vrai montant une fois payée. */
+  const sumKind = (kind) => round2(state.categories.filter((c) => c.kind === kind && c.active).reduce((a, c) => a + (c.budget || 0), 0));
+  function plan() { const inc = sumKind("revenu"), fix = sumKind("fixe"), vari = sumKind("enveloppe"); return { inc, fix, vari, save: round2(inc - fix - vari) }; }
+  const evNet = (ym) => round2(state.events.filter((e) => e.ym === ym && !e.done).reduce((a, e) => a + (e.type === "in" ? e.amount : -e.amount), 0));
+  const planMonth = (ym) => round2(plan().save + evNet(ym));
+  function now(mIn) {
+    const m = mIn || computeMonth(ymNow());
+    const room = round2(m.lines.filter((l) => l.c.kind === "enveloppe").reduce((a, l) => a + Math.max(0, l.plan - l.actual), 0));
+    const dl = daysLeft();
+    return { m, save: m.end, room, dl, perDay: round2(room / Math.max(1, dl)), planSave: planMonth(m.ym) };
+  }
+  const sv = (n, fut) => (n < 0 ? `tu ${fut ? "perdrais" : "perdras"} <b>${eur0(-n)}</b>` : `tu ${fut ? "épargnerais" : "épargneras"} <b>${eur0(n)}</b>`);
+  const instead = (n) => (n < 0 ? `au lieu d'en perdre ${eur0(-n)}` : `au lieu de ${eur0(n)}`);
+
+  /* ---------- Le matelas ----------
+     Ce qui est déjà de côté, plus ce que tu n'as pas dépensé chaque mois terminé et importé.
+     La date : ton épargne de ce mois-ci, puis celle de ton budget les mois suivants, mois particuliers compris. */
+  const cushionGoal = () => state.goals.find((g) => g.queue) || state.goals[0] || null;
+  function cushion(x = {}) {
+    const g = cushionGoal();
+    if (!g) return null;
+    const have = round2((g.saved || 0) + savingsFlow());
+    const pct = g.target > 0 ? Math.max(0, Math.min(100, (have / g.target) * 100)) : 0;
+    let cum = have + (x.gain || 0) - (x.once || 0);
+    if (cum >= g.target) return { g, have, pct, eta: ymNow(), full: true };
+    const base = plan().save;
+    let ym = ymNow();
+    for (let i = 0; i < 360; i++) {
+      cum += i === 0 ? (x.thisSave !== undefined ? x.thisSave : now().save) : base + evNet(ym) - (x.monthly || 0);
+      if (cum >= g.target) return { g, have, pct, eta: ym };
+      ym = ymShift(ym, 1);
+    }
+    return { g, have, pct, eta: null };
+  }
+  const etaText = (c) => (!c ? "" : c.full ? "déjà rempli" : !c.eta ? "jamais rempli à ce rythme" : c.eta === ymNow() ? "rempli à la fin de ce mois" : `rempli fin ${monthName(c.eta)}`);
+  const etaCompare = (c1, c0) => `Matelas ${etaText(c1)}${c1.eta === c0.eta && !!c1.full === !!c0.full ? ", même date" : ` au lieu de ${c0.full ? "déjà rempli" : c0.eta ? `fin ${monthName(c0.eta)}` : "jamais"}`}.`;
+  const gearBtn = () => `<button class="navbtn" data-act="go" data-v="reglages" aria-label="Réglages">${ICON.gear}${backupLate() || !storageOK ? '<span class="dot"></span>' : ""}</button>`;
+
+  /* ================= Mon budget : le tableau ================= */
+  function planRow(c) {
+    return `<div class="row pline">${tile(c)}<button class="pname" data-act="openCat" data-id="${esc(c.id)}"><span class="name">${esc(c.name)}</span></button><label class="pamt"><input inputmode="decimal" autocomplete="off" data-plan="${esc(c.id)}" value="${esc(amountText(c.budget))}" placeholder="0" aria-label="${esc(c.name)}, montant par mois"><span aria-hidden="true">€</span></label></div>`;
+  }
+  function planSection(kind, title, addLabel) {
+    const cats = state.categories.filter((c) => c.kind === kind && c.active);
+    return `<section class="section"><div class="sh"><h2>${title}</h2><span id="tot-${kind}">${eur0(sumKind(kind))}</span></div>
+      <div class="rows">${cats.map(planRow).join("")}<button class="row addrow" data-act="planAdd" data-kind="${kind}">${ICON.plus}<span>${addLabel}</span></button></div></section>`;
+  }
+  function cushionHtml(cu) {
+    if (!cu) return `<button class="cushion" data-act="editGoal"><span class="ct">Ajouter ton matelas de sécurité</span><span class="cs">L'appli te dit quand il sera rempli</span></button>`;
+    return `<button class="cushion" data-act="editGoal" data-id="${esc(cu.g.id)}"><span class="ct"><b>${esc(cu.g.name)}</b> : ${eur0(cu.have)} sur ${eur0(cu.g.target)}</span><span class="cs" id="cushionEta">${cap(etaText(cu))}</span><i class="cbar" aria-hidden="true"><b style="width:${cu.pct}%"></b></i></button>`;
+  }
+  const evSub = (ym) => { const s = ym === ymNow() ? now().save : planMonth(ym); return `${cap(monthName(ym))} : ${sv(s).replace(/<\/?b>/g, "")} ce mois-là`; };
+  function eventsSection() {
+    const list = state.events.filter((e) => e.ym >= ymNow() && !e.done).sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : 0));
+    // Un bloc par mois : ce qui change, puis ce que tu épargneras ce mois-là
+    const months = [...new Set(list.map((e) => e.ym))];
+    const blocks = months.map((ym) => `<div class="evmonth"><p class="daygroup" data-evym="${ym}">${evSub(ym)}</p><div class="rows">${list.filter((e) => e.ym === ym).map((e) => `<button class="row" data-act="editEvent" data-id="${esc(e.id)}"><span class="name">${esc(e.label)}</span><span class="amt ${e.type === "in" ? "in" : ""}">${e.type === "in" ? "+" : "−"}${eur0(e.amount)}</span></button>`).join("")}</div></div>`).join("");
+    return `<section class="section"><div class="sh"><h2>Mois particuliers</h2></div>${blocks}<div class="rows"><button class="row addrow" data-act="editEvent">${ICON.plus}<span>Ajouter une rentrée ou une dépense prévue</span></button></div><p class="hint">Une prime, Noël, des vacances : ce qui ne tombe qu'un mois. Compté dans ton épargne de ce mois-là.</p></section>`;
+  }
+  function renderPlan() {
+    const p = plan();
+    let html = head("Mon budget", "Un mois normal", { right: gearBtn() });
     if (!storageOK) html += `<button class="callout bad" data-act="go" data-v="sauvegarde"><span><b>Ce navigateur n'enregistre pas tes données.</b> Fais une sauvegarde avant de fermer.</span>${ICON.chev}</button>`;
-    const until = `par jour jusqu'au ${dim}`;
-    const per = r.R < 0 ? `<b>Il manque ${eur0(-r.R)}</b> d'ici le ${dim}`
-      : r.dl === 1 ? `${r.mood.key === "tight" ? "<b>Serré.</b> " : ""}Dernier jour du mois`
-      : r.mood.key === "tight" ? `<b>Serré :</b> ${eur0(r.perDay)} ${until}`
-      : `<b>${eur0(r.perDay)}</b> ${until}`;
-    html += `<section class="hero" data-mood="${r.mood.key}">
-      <button class="hero-main" data-act="how" aria-label="Pour finir le mois : ${eur0(r.R)}. Voir le calcul">
-        <span class="h-label">Pour finir le mois${ICON.chev}</span>
-        <span class="big" id="freeNum">${eur0(shownFree ?? r.R)}</span>
-        <span class="per"><i class="dot" aria-hidden="true"></i><span>${per}</span></span>
+    html += `<section class="hero plan" id="planHero" data-mood="${p.save < 0 ? "red" : "calm"}">
+      <p class="h-label" id="planLabel">${p.save < 0 ? "Tu perds" : "Tu épargnes"}</p>
+      <p class="big" id="planSave">${eur0(Math.abs(p.save))}</p>
+      <p class="per">par mois</p>
+      ${cushionHtml(cushion())}
+    </section>`;
+    html += planSection("revenu", "Revenus", "Ajouter un revenu");
+    html += planSection("fixe", "Charges fixes", "Ajouter une charge fixe");
+    html += planSection("enveloppe", "Dépenses variables", "Ajouter une dépense variable");
+    html += eventsSection();
+    html += `<div class="savebar" id="saveBar" data-mood="${p.save < 0 ? "red" : "calm"}" aria-hidden="true"><span id="saveBarLabel">${p.save < 0 ? "Tu perds" : "Tu épargnes"}</span><b id="saveBarNum">${eur0(Math.abs(p.save))} par mois</b></div>`;
+    app.innerHTML = html;
+    watchHero();
+  }
+  // Pendant que tu tapes un montant : le résultat, les totaux et la date du matelas suivent, sans recharger l'écran
+  function updatePlanNumbers() {
+    const p = plan(), red = p.save < 0;
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    set("planLabel", red ? "Tu perds" : "Tu épargnes"); set("planSave", eur0(Math.abs(p.save)));
+    set("saveBarLabel", red ? "Tu perds" : "Tu épargnes"); set("saveBarNum", `${eur0(Math.abs(p.save))} par mois`);
+    for (const k of ["revenu", "fixe", "enveloppe"]) set(`tot-${k}`, eur0(sumKind(k)));
+    for (const id of ["planHero", "saveBar"]) { const e = document.getElementById(id); if (e) e.dataset.mood = red ? "red" : "calm"; }
+    const cu = cushion(); if (cu) set("cushionEta", cap(etaText(cu)));
+    for (const e of document.querySelectorAll("[data-evym]")) e.textContent = evSub(e.dataset.evym);
+  }
+  // Le résultat reste visible en bas quand le grand chiffre sort de l'écran
+  function watchHero() {
+    if (heroObs) { heroObs.disconnect(); heroObs = null; }
+    const h = document.getElementById("planHero"), bar = document.getElementById("saveBar");
+    if (!h || !bar || !("IntersectionObserver" in window)) return;
+    heroObs = new IntersectionObserver(([e]) => bar.classList.toggle("on", !e.isIntersecting), { rootMargin: "-60px 0px 0px 0px" });
+    heroObs.observe(h);
+  }
+  function planAddSheet(kind) {
+    const lbl = { revenu: "Nouveau revenu", fixe: "Nouvelle charge fixe", enveloppe: "Nouvelle dépense variable" }[kind];
+    const ph = { revenu: "Ex. : prime, missions", fixe: "Ex. : forfait téléphone", enveloppe: "Ex. : coiffeur, cadeaux" }[kind];
+    openSheet(`<h2>${lbl}</h2><div class="field"><label for="pnName">Nom</label><input type="text" id="pnName" placeholder="${ph}" autocomplete="off"></div>
+      <div class="field"><label for="pnAmt">Par mois</label>${moneyInput("pnAmt", 0, "Montant par mois")}</div><p class="err" id="pnErr" hidden></p>
+      <div class="sheet-foot"><button class="btn primary" data-act="planAddSave" data-kind="${kind}">Ajouter</button></div>`, lbl);
+  }
+
+  /* ================= Et si… : ce qu'une dépense change à ton épargne ================= */
+  // Une dépense ponctuelle rangée dans un budget ne coûte à l'épargne que ce qui dépasse ce qui restait prévu
+  function scenOnce(s) {
+    if (!s.once) return 0;
+    if (!s.catId || !cat(s.catId)) return s.once;
+    return round2(Math.max(0, now().save - whatIf(s.once, s.catId, null).save));
+  }
+  const scenLine = (s) => [s.monthly ? `${eur0(s.monthly)} par mois` : "", s.once ? `${eur0(s.once)} une fois${s.catId && cat(s.catId) ? ` (${cat(s.catId).name})` : ""}` : "", s.gain ? `rapporte ${eur0(s.gain)}` : ""].filter(Boolean).join(" · ");
+  function renderEtsi() {
+    let html = head("Et si…", "Ce qu'une dépense change à ton épargne", { right: gearBtn() });
+    html += `<button class="btn primary addbtn" data-act="etsiOpen">${ICON.plus}Tester une dépense</button>`;
+    const p = plan(), cu = cushion();
+    let rows = `<button class="row cmp" data-act="go" data-v="budget"><span class="name">Sans rien changer</span><span class="amt">${eur0(p.save)}<span class="tag"> /mois</span></span><span class="sub">Ton budget actuel${cu ? ` · matelas ${etaText(cu)}` : ""}</span></button>`;
+    for (const s of state.scenarios) {
+      const save = round2(p.save - (s.monthly || 0)), once = scenOnce(s);
+      const c2 = cu ? cushion({ monthly: s.monthly || 0, once, gain: s.gain || 0 }) : null;
+      const d = round2(save - p.save);
+      rows += `<button class="row cmp" data-act="editScen" data-id="${esc(s.id)}"><span class="name">${esc(s.name)}</span><span class="amt ${save < 0 ? "neg" : ""}">${eur0(save)}<span class="tag"> /mois</span></span>
+        <span class="sub">${esc(scenLine(s))}${!d && once ? ` · <b class="neg">−${eur0(once)} d'épargne ce mois-ci</b>` : ""}${c2 ? `<br>${etaCompare(c2, cu)}` : ""}</span></button>`;
+    }
+    rows += `<button class="row addrow" data-act="editScen">${ICON.plus}<span>Ajouter une comparaison</span></button>`;
+    html += `<section class="section"><div class="sh"><h2>Comparer</h2><span>épargne par mois</span></div><div class="rows">${rows}</div><p class="hint">Une voiture, un abonnement, un déménagement : ce que chaque choix te laisse chaque mois, et quand ton matelas est rempli.</p></section>`;
+    app.innerHTML = html;
+  }
+  const keysHtml = () => ["1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "0", "del"].map((k) => `<button type="button" class="key" data-act="key" data-v="${k}" aria-label="${k === "del" ? "Effacer" : k === "," ? "Virgule" : k}">${k === "del" ? ICON.del : k}</button>`).join("");
+  function etsiSheet() {
+    typed = ""; padDate = null; etsi = { mode: "once", cat: null };
+    const { main, rest } = addCats();
+    const pb = (c) => `<button type="button" class="pick" data-act="etsiCat" data-v="${esc(c.id)}" aria-pressed="false">${tile(c)}<span class="pn">${esc(shortName(c))}</span></button>`;
+    openSheet(`<h2>Et si je dépense…</h2>
+      <div class="addamt num blank" id="padAmt" aria-live="polite">0<span class="cur">€</span></div>
+      <div class="seg big" role="group" aria-label="Combien de fois"><button type="button" data-act="etsiMode" data-v="once" aria-pressed="true">Une fois, ce mois-ci</button><button type="button" data-act="etsiMode" data-v="month" aria-pressed="false">Chaque mois</button></div>
+      <div class="etsires" id="etsiRes" aria-live="polite"></div>
+      <div id="etsiCats"><p class="flabel">Dans quel budget ? Facultatif</p>
+        <div class="picks2" id="pickGrid">${main.map(pb).join("")}${rest.length ? `<button type="button" class="pick" data-act="pickMore" aria-expanded="false">${tileRaw("#8E8E93", "more")}<span class="pn">Autre</span></button>` : ""}</div>
+        ${rest.length ? `<div class="picks2" id="pickMore" role="group" aria-label="Autres catégories" hidden>${rest.map(pb).join("")}</div>` : ""}</div>
+      <div class="keys">${keysHtml()}</div>
+      <div class="sheet-foot"><button class="btn secondary" data-act="etsiKeep">Garder pour comparer</button></div>`, "Et si je dépense");
+    const sh = sheetHost.querySelector(".sheet"); if (sh) sh.classList.add("add");
+    updateEtsi();
+  }
+  function updateEtsi() {
+    const amtEl = document.getElementById("padAmt"), res = document.getElementById("etsiRes");
+    if (!amtEl || !res) return;
+    const a = parseAmount(typed || "0");
+    amtEl.className = "addamt num" + (typed ? "" : " blank");
+    amtEl.innerHTML = `${typed ? esc(typed) : "0"}<span class="cur">€</span>`;
+    const cats = document.getElementById("etsiCats"); if (cats) cats.hidden = etsi.mode !== "once";
+    const cu0 = cushion();
+    let r1, r2 = "", cls = "";
+    if (etsi.mode === "once") {
+      const t0 = now();
+      if (!(a > 0)) { res.className = "etsires"; res.innerHTML = `<p class="r1">Pour l'instant, en fin de mois, ${sv(t0.save)}.</p>${cu0 ? `<p class="m">Matelas ${etaText(cu0)}.</p>` : ""}`; return; }
+      const after = whatIf(a, etsi.cat, null).save;
+      const diff = round2(t0.save - after);
+      cls = diff < 0.5 ? "ok" : after < 0 ? "ko" : "mid";
+      r1 = diff < 0.5 ? `En fin de mois, ${sv(after)} quand même.` : `En fin de mois, ${sv(after, true)} ${instead(t0.save)}.`;
+      if (etsi.cat) r2 = `<p class="m">${diff < 0.5 ? `Déjà prévu dans ${esc(cat(etsi.cat).name)} : ton épargne ne bouge pas.` : a - diff > 0.5 ? `${eur0(a - diff)} étaient déjà prévus dans ${esc(cat(etsi.cat).name)}, ${eur0(diff)} sortent de ton épargne.` : `Ton budget ${esc(cat(etsi.cat).name)} est déjà dépensé : tout sort de ton épargne.`}</p>`;
+      if (cu0) r2 += `<p class="m">${etaCompare(cushion({ thisSave: after }), cu0)}</p>`;
+    } else {
+      const p = plan();
+      if (!(a > 0)) { res.className = "etsires"; res.innerHTML = `<p class="r1">Aujourd'hui, tu épargnes <b>${eur0(p.save)}</b> par mois.</p>${cu0 ? `<p class="m">Matelas ${etaText(cu0)}.</p>` : ""}`; return; }
+      const after = round2(p.save - a);
+      cls = after < 0 ? "ko" : "mid";
+      r1 = `Chaque mois, ${sv(after, true)} ${instead(p.save)}.`;
+      if (cu0) r2 = `<p class="m">${etaCompare(cushion({ monthly: a }), cu0)}</p>`;
+    }
+    res.className = `etsires ${cls}`;
+    res.innerHTML = `<p class="r1">${r1}</p>${r2}`;
+  }
+  function scenSheet(id) {
+    const s = id ? state.scenarios.find((x) => x.id === id) : { id: "", name: "", monthly: 0, once: 0, gain: 0 };
+    if (!s) return;
+    openSheet(`<h2>${id ? "Modifier la comparaison" : "Nouvelle comparaison"}</h2>
+      <div class="field"><label for="sName">Nom</label><input type="text" id="sName" value="${esc(s.name)}" placeholder="Ex. : Peugeot 308 hybride" autocomplete="off"></div>
+      <div class="field"><label for="sMonthly">Coûte chaque mois</label>${moneyInput("sMonthly", s.monthly, "Coûte chaque mois")}<p class="hint">Un loyer, une assurance, un abonnement.</p></div>
+      <div class="grid2"><div class="field"><label for="sOnce">Coûte une fois</label>${moneyInput("sOnce", s.once, "Coûte une fois")}</div>
+        <div class="field"><label for="sGain">Rapporte une fois</label>${moneyInput("sGain", s.gain, "Rapporte une fois")}</div></div>
+      <p class="hint">Par exemple un apport de 3 000 €, et la vente de ta voiture actuelle pour 5 000 €.</p><p class="err" id="sErr" hidden></p>
+      ${id ? `<button class="btn danger" data-act="delScen" data-id="${esc(s.id)}">Supprimer</button>` : ""}
+      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveScen" data-id="${esc(s.id)}">Enregistrer</button></div>`, "Comparaison");
+  }
+
+  /* ================= Ce mois-ci : le réel ================= */
+  function renderMois() {
+    const t = now(), m = t.m, dim = daysIn(m.ym), day = new Date().getDate();
+    let html = head("Ce mois-ci", dateLong(), { subTop: true, right: gearBtn() });
+    if (!storageOK) html += `<button class="callout bad" data-act="go" data-v="sauvegarde"><span><b>Ce navigateur n'enregistre pas tes données.</b> Fais une sauvegarde avant de fermer.</span>${ICON.chev}</button>`;
+    const d = round2(t.save - t.planSave);
+    const mood = t.save < 0 ? "red" : d < -1 ? "tight" : "calm";
+    const vs = Math.abs(d) < 1 ? "Comme prévu dans ton budget" : d < 0 ? `<b>${eur0(-d)} de moins</b> que prévu (${eur0(t.planSave)})` : `<b>${eur0(d)} de plus</b> que prévu (${eur0(t.planSave)})`;
+    const room = t.room > 0 ? `Tu peux encore dépenser <b>${eur0(t.room)}</b> d'ici le ${dim}${t.dl > 1 ? `, soit ${eur0(t.perDay)} par jour` : ""}, sans toucher à ton épargne.` : `Ton budget du mois est dépensé : chaque euro de plus sort de ton épargne.`;
+    html += `<section class="hero" data-mood="${mood}">
+      <button class="hero-main" data-act="how" aria-label="En fin de mois : ${t.save < 0 ? "perte" : "épargne"} de ${eur0(Math.abs(t.save))}. Voir le calcul">
+        <span class="h-label">${t.save < 0 ? "En fin de mois, tu perdras" : "En fin de mois, tu épargneras"}${ICON.chev}</span>
+        <span class="big" id="freeNum">${eur0(Math.abs(shownFree ?? t.save))}</span>
+        <span class="per"><i class="dot" aria-hidden="true"></i><span>${vs}</span></span>
       </button>
-      ${dayLine(r)}
+      <p class="room">${room}</p>
       <button class="btn primary addbtn" data-act="addOpen">${ICON.plus}Ajouter une dépense</button>
     </section>`;
     html += paydayAlert();
-    html += budgetsHome(m);
-    html += aVenirHtml(m);
-    html += recentHtml(3);
+    // Dépenses variables, dans l'ordre de Mon budget
+    const envL = m.lines.filter((l) => l.c.kind === "enveloppe" && (l.c.active || l.actual > 0));
+    const autre = m.uncl > 0 ? `<button class="row" data-act="opsAutre">${tileRaw("#8E8E93", "question")}<span class="name">Autre</span><span class="st">${eur0(m.uncl)}</span><span class="sub">${m.unclCount} dépense${m.unclCount > 1 ? "s" : ""} pas reconnue${m.unclCount > 1 ? "s" : ""}, prise${m.unclCount > 1 ? "s" : ""} sur ton épargne. Touche pour les ranger.</span></button>` : "";
+    const spent = round2(envL.reduce((a, l) => a + Math.max(0, l.actual), 0) + m.uncl);
+    const planned = round2(envL.reduce((a, l) => a + l.plan, 0));
+    if (envL.length || autre) html += `<section class="section"><div class="sh"><h2>Dépenses variables</h2><span>${eur0(spent)} sur ${eur0(planned)}</span></div><div class="rows">${envL.map((l) => envRow(l, m, false)).join("")}${autre}</div></section>`;
+    // Charges fixes : un rond à cocher quand c'est payé
+    const pins = fixedPins(m, dim).filter((p) => p.amount > 0 || p.paid).sort((a, b) => (a.day || 99) - (b.day || 99));
+    const paidN = pins.filter((p) => p.paid).length;
+    if (pins.length) html += `<section class="section"><div class="sh"><h2>Charges fixes</h2><span>${paidN} payée${paidN > 1 ? "s" : ""} sur ${pins.length}</span></div><div class="rows">${pins.map((p) => billRow(p, false, day)).join("")}</div><p class="hint">Touche le rond quand c'est payé. Le relevé importé coche les prélèvements tout seul.</p></section>`;
+    html += recentHtml(5);
+    // Le mois dernier, en un chiffre
+    const prev = ymShift(m.ym, -1);
+    if (monthDone(prev)) {
+      const e = computeMonth(prev, { raw: true });
+      if (e.txs.length) html += `<div class="rows"><button class="row" data-act="opsMonth" data-ym="${prev}"><span class="name">${cap(MONTHS[Number(prev.slice(5)) - 1])} : tu as ${e.end < 0 ? `perdu ${eur0(-e.end)}` : `épargné ${eur0(e.end)}`}</span>${ICON.chev}</button></div>`;
+    }
     app.innerHTML = html;
-    tweenFree(r.R);
+    tweenFree(Math.abs(t.save));
   }
 
-  // Ce qui est parti aujourd'hui, face à ta part du jour
-  function dayLine(r) {
-    const sp = spentToday();
-    const allow = round2((r.R + sp) / Math.max(1, r.dl));
-    if (!(allow > 0) && !sp) return "";
-    const pct = allow > 0 ? Math.min(100, (sp / allow) * 100) : 100;
-    const over = sp > allow;
-    return `<div class="today${over ? " over" : ""}"><span>Aujourd'hui : <b>${eur0(sp)}</b> dépensés sur ${eur0(allow)}${over ? `, ${eur0(sp - allow)} de trop` : sp ? `, reste ${eur0(allow - sp)}` : ""}</span><i aria-hidden="true"><b style="width:${pct}%"></b></i></div>`;
-  }
-
-  // Tes budgets : les 4 catégories où tu dépenses le plus ce mois-ci
-  function budgetsHome(m) {
-    const list = m.lines.filter((l) => l.c.kind === "enveloppe" && l.plan > 0 && l.actual > 0).sort((a, b) => b.actual - a.actual).slice(0, 4);
-    if (!list.length) return "";
-    return `<section class="section"><div class="sh"><h2>Tes budgets</h2><button class="btn link" data-act="go" data-v="budget">Tout voir</button></div><div class="rows">${list.map((l) => envRow(l, m, false)).join("")}</div></section>`;
-  }
-
-  // À venir : les prochaines factures à cocher, puis ton matelas
-  function aVenirHtml(m) {
-    const dim = daysIn(m.ym), day = new Date().getDate();
-    const pins = fixedPins(m, dim).filter((p) => !p.paid && p.amount > 0 && p.c.active).sort((a, b) => (a.day || 99) - (b.day || 99));
-    let rows = pins.slice(0, 3).map((p) => billRow(p, false, day)).join("");
-    if (pins.length > 3) rows += `<button class="row" data-act="go" data-v="budget"><span class="name more">${pins.length - 3} autre${pins.length - 3 > 1 ? "s" : ""} facture${pins.length - 3 > 1 ? "s" : ""} à venir</span>${ICON.chev}</button>`;
-    const g = queueState().find((q) => q.rest > 0);
-    if (g) rows += `<button class="row" data-act="go" data-v="epargne">${tileRaw(FAM.epargne.color, "lock")}<span class="name">${esc(g.g.name)}</span><span class="amt">${eur0(g.have)}<span class="tag"> sur ${eur0(g.g.target)}</span></span><div class="bar" aria-hidden="true"><i style="width:${g.pct}%;background:${FAM.epargne.color}"></i></div><span class="sub">${g.eta ? `Rempli vers ${monthName(g.eta)}` : "Indique ton épargne par mois pour avoir une date"}</span></button>`;
-    if (!rows) return "";
-    return `<section class="section"><div class="sh"><h2>À venir</h2><span>${pins.length ? `${eur0(pins.reduce((a, p) => a + p.amount, 0))} de factures` : "factures payées"}</span></div><div class="rows">${rows}</div></section>`;
+  function howSheet() {
+    const t = now(), m = t.m;
+    const rows = (list) => list.map(([k, v, cls = ""]) => `<dt class="${cls}">${k}</dt><dd class="${cls}">${v}</dd>`).join("");
+    const inc = m.lines.filter((l) => l.c.kind === "revenu" && (l.counted || l.has)).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "reçu" : "à venir"})</span>`, `+ ${eur(l.counted)}`]).concat(m.events.filter((e) => e.type === "in").map((e) => [`${esc(e.label)} <span class="tag">(prévu)</span>`, `+ ${eur(e.amount)}`]));
+    const fix = m.lines.filter((l) => l.c.kind === "fixe" && l.counted).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "payée" : "à venir"})</span>`, `− ${eur(l.counted)}`]);
+    const env = m.lines.filter((l) => l.c.kind === "enveloppe" && (l.plan > 0 || l.actual > 0)).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.actual > l.plan ? `dépensé ${eur0(l.actual)}, budget ${eur0(l.plan)} dépassé` : `budget ${eur0(l.plan)}, dépensé ${eur0(Math.max(0, l.actual))}`})</span>`, `− ${eur(l.counted)}`]).concat(m.uncl ? [[`Autre <span class="tag">(${m.unclCount} pas reconnue${m.unclCount > 1 ? "s" : ""})</span>`, `− ${eur(m.uncl)}`]] : []);
+    const cov = coverage();
+    openSheet(`<h2>Comment c'est calculé</h2>
+      <p class="meta">Ce qui rentre ce mois-ci, moins ce qui part ou partira.</p>
+      <dl class="summary">
+        <span class="grp">Revenus</span>${rows(inc.length ? inc : [["Rien de prévu", "0 €"]])}
+        <span class="grp">Charges fixes</span>${rows(fix.length ? fix : [["Aucune", "0 €"]])}
+        <span class="grp">Dépenses variables</span>${rows(env.length ? env : [["Aucune", "0 €"]])}
+        ${m.evOut ? `<span class="grp">Prévu ce mois-ci</span>${rows(m.events.filter((e) => e.type === "out").map((e) => [esc(e.label), `− ${eur(e.amount)}`]))}` : ""}
+        ${rows([[t.save < 0 ? "En fin de mois, tu perdras" : "En fin de mois, tu épargneras", eur(Math.abs(t.save)), "total"]])}
+      </dl>
+      <p class="hint">Pour chaque dépense variable, c'est ton budget qui compte, ou ce que tu as déjà dépensé s'il est dépassé. Une charge fixe compte pour son vrai montant dès qu'elle est payée.</p>
+      <p class="hint">${cov ? `Relevé importé jusqu'au ${shortDate(cov)}. Ce que tu as payé depuis compte dès que tu l'ajoutes.` : "Aucun relevé importé : seuls ton budget et tes ajouts comptent."}</p>`, "Comment c'est calculé");
   }
 
   const dShort = (iso) => { const [, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS_S[m - 1]}`; };
@@ -1353,7 +1580,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
   function recentHtml(n) {
     const list = state.tx.filter(isDaily).sort((a, b) => (a.date !== b.date ? (a.date < b.date ? 1 : -1) : String(txTime(b) || "").localeCompare(String(txTime(a) || "")))).slice(0, n || 5);
     if (!list.length) return `<section class="section"><div class="sh"><h2>Dernières dépenses</h2></div><p class="hint">Rien pour l'instant. Touche « Ajouter une dépense » à chaque achat, ou importe ton relevé depuis les réglages.</p></section>`;
-    return `<section class="section"><div class="sh"><h2>Dernières dépenses</h2><button class="btn link" data-act="opsAll" data-from="aujourdhui">Tout voir</button></div><div class="rows">${list.map((t) => dailyRow(t, true)).join("")}</div></section>`;
+    return `<section class="section"><div class="sh"><h2>Dernières dépenses</h2><button class="btn link" data-act="opsAll" data-from="mois">Tout voir</button></div><div class="rows">${list.map((t) => dailyRow(t, true)).join("")}</div></section>`;
   }
 
   // Les jours qui suivent la paie : les sorties partent vite, l'appli le dit en chiffres bruts
@@ -1394,9 +1621,9 @@ details.tri-more > .picks2 { margin-top: 8px; }
     if (!el) return;
     const from = shownFree ?? to;
     shownFree = to;
-    if (from === to || reduced()) { el.textContent = eur0(to); return; }
+    if (from === to || reduced()) { el.textContent = eur0(Math.abs(to)); return; }
     const t0 = performance.now(), dur = 420;
-    const step = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); if (!document.body.contains(el)) return; el.textContent = eur0(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+    const step = (t) => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); if (!document.body.contains(el)) return; el.textContent = eur0(Math.abs(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   }
 
@@ -1464,15 +1691,6 @@ details.tri-more > .picks2 { margin-top: 8px; }
     state.tx = state.tx.filter((t) => !(t.paidMark && real.has(`${t.manualCat}|${ymOf(t.date)}`)));
     return before - state.tx.length;
   }
-  function dueReminders() {
-    const ym = ymNow(), day = new Date().getDate(), dim = daysIn(ym);
-    const m = computeMonth(ym);
-    return m.lines.filter((l) => l.c.kind === "fixe" && l.c.active && l.c.selfPay && !l.has && l.plan > 0).map((l) => {
-      const due = Math.min(usualDay(l.c) || 0, dim);
-      return due ? { c: l.c, due, amount: l.plan, late: day > due, soon: day >= due - 3 } : null;
-    }).filter((x) => x && (x.late || x.soon));
-  }
-
   /* ---------- Ajouter une dépense : montant, catégorie, jour ---------- */
   const MAIN_CATS = ["nourriture", "sorties", "livraisons", "essence", "shopping"];
   const shortName = (c) => c.name.split(/\s*:\s*|,\s*|\s+et\s+|\s+de\s+/)[0] || c.name;
@@ -1522,32 +1740,32 @@ details.tri-more > .picks2 { margin-top: 8px; }
     if (ot) ot.textContent = other ? dShort(padDate) : "Autre jour";
   }
 
-  // Simule une dépense sans l'enregistrer
-  function whatIf(amount, catId) {
-    const tmp = { id: "__sim", date: padDate && ymOf(padDate) === ymNow() ? padDate : todayISO(), label: "", amount: -round2(amount), source: "sim", manualCat: catId || undefined };
+  // Simule une dépense sans l'enregistrer : ce que deviendrait ton épargne de fin de mois
+  function whatIf(amount, catId, date) {
+    const d = date && ymOf(date) === ymNow() ? date : todayISO();
+    const tmp = { id: "__sim", date: d, label: "", amount: -round2(amount), source: "sim", manualCat: catId || undefined };
     state.tx.push(tmp);
-    try { const m = computeMonth(ymNow()); return { m, f: freeToSpend(m), r: reste(m) }; }
+    try { return now(computeMonth(ymNow())); }
     finally { state.tx.pop(); }
   }
 
   function updateAdd() {
     const amtEl = document.getElementById("padAmt"), aft = document.getElementById("addAfter");
-    if (!amtEl) return;
+    if (!amtEl || !aft) return;
     const a = parseAmount(typed || "0");
     amtEl.className = "addamt num" + (typed ? "" : " blank");
     amtEl.innerHTML = `${typed ? esc(typed) : "0"}<span class="cur">€</span>`;
-    const now = reste(), dim = daysIn(ymNow());
-    if (!(a > 0)) { aft.className = "after"; aft.innerHTML = `<span>Pour finir le mois : <b>${eur0(now.R)}</b></span>`; return; }
+    const t0 = now();
+    if (!(a > 0)) { aft.className = "after"; aft.innerHTML = `<span>En fin de mois, ${sv(t0.save)}</span>`; return; }
     if (padDate && ymOf(padDate) < ymNow()) { aft.className = "after"; aft.innerHTML = `<span>Comptée en ${MONTHS[Number(padDate.slice(5, 7)) - 1]}, pas sur ce mois-ci</span>`; return; }
-    if ((document.getElementById("addCash") || {}).checked) { aft.className = "after"; aft.innerHTML = `<span>En liquide : déjà compté au retrait. Toujours <b>${eur0(now.R)}</b></span>`; return; }
-    const { r } = whatIf(a, padCat);
-    let cls = "after", txt;
-    if (r.R < 0) { cls += " ko"; txt = `Après ça : il manquerait <b>${eur0(-r.R)}</b> d'ici le ${dim}`; }
-    else { if (r.mood.key === "tight") cls += " mid"; txt = `Après ça : <b>${eur0(r.R)}</b>${r.dl > 1 ? `, soit ${eur0(r.perDay)} par jour` : ""}`; }
-    let extra = "";
+    if ((document.getElementById("addCash") || {}).checked) { aft.className = "after"; aft.innerHTML = `<span>En liquide : déjà compté au retrait. En fin de mois, ${sv(t0.save)}</span>`; return; }
+    const t1 = whatIf(a, padCat, padDate);
+    const diff = round2(t0.save - t1.save);
     const c = padCat ? cat(padCat) : null;
-    const l = c ? now.m.lines.find((x) => x.c.id === c.id) : null;
-    if (l && l.plan > 0 && l.actual + a > l.plan) extra = `<span class="v3">${esc(c.name)} : ${eur0(l.actual + a - l.plan)} de plus que prévu</span>`;
+    let txt, cls = "after";
+    if (c && diff < 0.5) txt = `Prévu dans ${esc(c.name)} : ton épargne reste à <b>${eur0(t1.save)}</b>`;
+    else { cls += t1.save < 0 ? " ko" : " mid"; txt = `En fin de mois, ${sv(t1.save)} ${instead(t0.save)}`; }
+    const extra = c && diff > 0.5 && a - diff > 0.5 ? `<span class="v2">${eur0(a - diff)} étaient prévus dans ${esc(c.name)}, ${eur0(diff)} sortent de ton épargne</span>` : "";
     aft.className = cls;
     aft.innerHTML = `<span>${txt}</span>${extra}${regretLine(a, padCat)}`;
   }
@@ -1578,7 +1796,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
       typed = typed === "0" ? k : typed + k;
     }
     const er = document.getElementById("addErr"); if (er) er.hidden = true;
-    updateAdd();
+    (document.getElementById("etsiRes") ? updateEtsi : updateAdd)();
   }
 
   const shake = (el) => { if (!el) return; el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); };
@@ -1600,28 +1818,6 @@ details.tri-more > .picks2 { margin-top: 8px; }
     save(); typed = ""; padDate = null; padCat = null;
     closeSheet(); render(); haptic();
     toast(`Ajouté : ${eur(a)}, ${c.name}${cash ? ", en liquide" : ""}${isToday ? "" : `, ${whenLabel(d).toLowerCase()}`}`, () => { state.tx = state.tx.filter((t) => t.id !== tx.id && t.cashOffset !== tx.id); save(); render(); toast("Dépense retirée"); });
-  }
-
-  function howSheet() {
-    const r = reste(), m = r.m;
-    const rows = (list) => list.map(([k, v, cls = ""]) => `<dt class="${cls}">${k}</dt><dd class="${cls}">${v}</dd>`).join("");
-    const inc = m.lines.filter((l) => l.c.kind === "revenu" && (l.counted || l.has)).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "reçu" : "à venir"})</span>`, `+ ${eur(l.counted)}`]).concat(m.events.filter((e) => e.type === "in").map((e) => [`${esc(e.label)} <span class="tag">(prévu)</span>`, `+ ${eur(e.amount)}`]));
-    const fix = m.lines.filter((l) => l.c.kind === "fixe" && l.counted).map((l) => [`${esc(l.c.name)} <span class="tag">(${l.has ? "payée" : "à venir"})</span>`, `− ${eur(l.counted)}`]);
-    const env = m.lines.filter((l) => l.c.kind === "enveloppe" && l.actual).map((l) => [esc(l.c.name), `− ${eur(l.actual)}`]).concat(m.uncl ? [[`Autre (${m.unclCount})`, `− ${eur(m.uncl)}`]] : []);
-    const cov = coverage();
-    openSheet(`<h2>Comment c'est calculé</h2>
-      <p class="meta">Ce qui rentre ce mois-ci, moins ce qui est parti ou va partir. Chaque dépense fait baisser le chiffre.</p>
-      <dl class="summary">
-        <span class="grp">Ce qui rentre</span>${rows(inc.length ? inc : [["Rien de prévu", "0 €"]])}
-        <span class="grp">Factures</span>${rows(fix.length ? fix : [["Aucune", "0 €"]])}
-        <span class="grp">Déjà dépensé ce mois-ci</span>${rows(env.length ? env : [["Rien pour l'instant", "0 €"]])}
-        ${m.evOut ? `<span class="grp">Prévu ce mois-ci</span>${rows(m.events.filter((e) => e.type === "out").map((e) => [esc(e.label), `− ${eur(e.amount)}`]))}` : ""}
-        ${r.est ? rows([["Dépenses probables pas encore importées", `− ${eur(r.est)}`]]) : ""}
-        ${r.target ? `<span class="grp">Épargne</span>${rows([["Mis de côté ce mois-ci", `− ${eur(r.target)}`]])}` : ""}
-        ${rows([["Pour finir le mois", eur(r.R), "total"]])}
-      </dl>
-      ${r.R > 0 && r.dl > 1 ? `<p class="hint">Divisé par les ${r.dl} jours qui restent, aujourd'hui compris : ${eur0(r.perDay)} par jour.</p>` : ""}
-      <p class="hint">${cov ? `Relevé importé jusqu'au ${shortDate(cov)}. Ce que tu as payé depuis compte dès que tu l'ajoutes.` : "Aucun relevé importé : seuls tes montants prévus et tes saisies comptent."}</p>`, "Comment c'est calculé");
   }
 
   /* ================= Opérations ================= */
@@ -1666,97 +1862,11 @@ details.tri-more > .picks2 { margin-top: 8px; }
     if (el && !reduced()) { el.classList.remove("enter"); el.classList.add("leave"); setTimeout(after, 170); } else after();
   }
 
-  /* ---------- Bilan en phrases ---------- */
-  function spentByLabel(txs) {
-    const g = new Map();
-    for (const t of txs) {
-      if (t.amount >= 0) continue;
-      const k = classify(t);
-      if (k === "hors" || (cat(k) && cat(k).kind === "fixe")) continue;
-      const key = norm(t.label);
-      if (!g.has(key)) g.set(key, { label: t.label, total: 0, n: 0 });
-      const x = g.get(key); x.total = round2(x.total - t.amount); x.n++;
-    }
-    return [...g.values()].sort((a, b) => b.total - a.total);
-  }
   // Heure d'une opération : notée à l'import, sinon retrouvée dans la clé du relevé (date et heure Revolut)
   function txTime(t) {
     if (t.time) return t.time;
     const m = t.key && String(t.key).match(/^\d{4}-\d{2}-\d{2}[ T](\d{2}:\d{2})/);
     return m ? m[1] : null;
-  }
-  function nightFacts(m) {
-    const out = [];
-    const groups = new Map();
-    for (const t of m.txs) {
-      if (t.amount >= 0 && !t.cashOffset) continue;
-      const k = classify(t);
-      if (k === "hors" || (cat(k) && cat(k).kind !== "enveloppe")) continue;
-      if (k === "nourriture" || k === "essence") continue;
-      const tm = txTime(t);
-      if (!tm) continue;
-      const h = Number(tm.slice(0, 2));
-      if (h >= 6 && h < 22) continue;
-      let day = t.date;
-      if (h < 6) { const d = new Date(t.date + "T12:00:00"); d.setDate(d.getDate() - 1); day = isoOf(d); }
-      groups.set(day, round2((groups.get(day) || 0) - t.amount));
-    }
-    if (groups.size) {
-      const total = round2([...groups.values()].reduce((a, b) => a + b, 0));
-      const [maxDay, max] = [...groups.entries()].sort((a, b) => b[1] - a[1])[0];
-      if (total >= 20) out.push({ ic: "moon", cls: total >= 100 ? "warn" : "", t: `Après 22 h : <b>${eur0(total)}</b> en ${groups.size} soirée${groups.size > 1 ? "s" : ""}${groups.size > 1 ? `, dont ${eur0(max)} la nuit du ${shortDate(maxDay)}` : ""}.` });
-    }
-    const liv = cat("livraisons");
-    if (liv) {
-      const lt = m.txs.filter((t) => t.amount < 0 && classify(t) === "livraisons");
-      if (lt.length) { const tot = round2(lt.reduce((a, t) => a - t.amount, 0)); out.push({ ic: "bag", cls: lt.length >= 3 || (liv.budget > 0 && tot > liv.budget) ? "warn" : "", t: `Livraisons de repas : <b>${lt.length} commande${lt.length > 1 ? "s" : ""}, ${eur0(tot)}</b>${liv.budget > 0 ? ` pour ${eur0(liv.budget)} prévus` : ""}, soit ${eur(tot / lt.length)} la commande.` }); }
-    }
-    return out;
-  }
-  function facts(ym) {
-    const now = ymNow();
-    const m = computeMonth(ym, ym < now ? { raw: true } : {});
-    const out = [];
-    const mName = MONTHS[Number(ym.slice(5)) - 1];
-    const expTx = m.txs.filter((t) => t.amount < 0 && classify(t) !== "hors");
-    if (ym < now) {
-      const plan = planEnd();
-      const d = round2(m.end - plan);
-      out.push({ ic: "coins", cls: d >= 0 ? "good" : "warn", t: `En ${mName}, il t'est resté <b>${eur0(m.end)}</b>, ${d >= 0 ? `${eur0(d)} de mieux` : `${eur0(-d)} de moins`} que ton budget (${eur0(plan)}).` });
-    } else {
-      const since = new Date(); since.setDate(since.getDate() - 7);
-      const sIso = isoOf(since);
-      const week = round2(state.tx.filter((t) => t.date > sIso && t.date <= todayISO() && t.amount < 0 && classify(t) !== "hors" && !(cat(classify(t)) && cat(classify(t)).kind === "fixe")).reduce((a, t) => a - t.amount, 0));
-      const avg = avgDaily();
-      const cov = coverage();
-      if (cov && cov < todayISO() && Math.round((new Date(todayISO()) - new Date(cov)) / 864e5) >= 3) out.push({ ic: "alert", cls: "warn", t: `Ton relevé s'arrête au <b>${shortDate(cov)}</b>. Importe-le pour que ce bilan soit juste.` });
-      out.push({ ic: "cal", cls: "", t: `Ces 7 derniers jours : <b>${eur0(week)}</b> de dépenses enregistrées${avg !== null ? `, pour environ ${eur0(avg * 7)} une semaine normale` : ""}.` });
-      for (const l of m.lines) {
-        if (l.c.kind !== "enveloppe" || !(l.plan > 0)) continue;
-        const pc = pace(m, l);
-        if (l.actual > l.plan) out.push({ ic: "alert", cls: "bad", t: `<b>${esc(l.c.name)}</b> a déjà dépassé son budget de ${eur0(l.actual - l.plan)}.` });
-        else if (pc && pc > l.plan * 1.05) out.push({ ic: "trend", cls: "warn", t: `À ce rythme, <b>${esc(l.c.name)}</b> finira à ${eur0(pc)} pour ${eur0(l.plan)} prévus.` });
-      }
-    }
-    out.push(...nightFacts(m));
-    const top = spentByLabel(m.txs).slice(0, 3);
-    if (top.length) out.push({ ic: "bag", cls: "", t: `Là où ça part le plus${ym < now ? "" : " ce mois-ci"} : ${top.map((x) => `<b>${esc(x.label)}</b> ${eur0(x.total)}${x.n > 1 ? ` (${x.n} fois)` : ""}`).join(", ")}.` });
-    const small = expTx.filter((t) => -t.amount < 10 && !(cat(classify(t)) && cat(classify(t)).kind === "fixe"));
-    if (small.length >= 8) out.push({ ic: "coins", cls: "", t: `<b>${small.length} petits achats</b> de moins de 10 € : ${eur0(small.reduce((a, t) => a - t.amount, 0))} au total.` });
-    for (const l of m.lines) {
-      if (l.c.kind !== "fixe") continue;
-      const tx = m.txs.filter((t) => classify(t) === l.c.id && t.amount < 0);
-      const ds = tx.map((t) => t.date).sort();
-      const close = ds.some((x, i) => i > 0 && (new Date(x) - new Date(ds[i - 1])) / 864e5 < 20);
-      const when = ds.map((x) => `le ${Number(x.slice(8))}`).join(", ");
-      if (tx.length >= 2 && close) out.push({ ic: "repeat", cls: "warn", t: `<b>${esc(l.c.name)}</b> a été prélevé ${tx.length} fois à quelques jours d'écart (${when}) : ${eur(l.actual)} au lieu de ${eur(l.plan)}. À vérifier.` });
-      else if (tx.length >= 2) out.push({ ic: "repeat", cls: "", t: `<b>${esc(l.c.name)}</b> est passé ${tx.length} fois ce mois-là (${when}). Les deux prélèvements sont à un mois d'écart : le dernier est sans doute celui du mois suivant, en avance.` });
-      else if (ym < now && l.c.active && l.plan > 0 && !tx.length) out.push({ ic: "alert", cls: "", t: `<b>${esc(l.c.name)}</b> n'apparaît pas dans le relevé de ${mName}. Payé ailleurs, ou à une autre date ?` });
-    }
-    const big = expTx.filter((t) => !(cat(classify(t)) && cat(classify(t)).kind === "fixe")).sort((a, b) => a.amount - b.amount)[0];
-    if (big && -big.amount >= 50) out.push({ ic: "bag", cls: "", t: `Plus grosse dépense : <b>${esc(big.label)}</b>, ${eur(-big.amount)} le ${shortDate(big.date)}.` });
-    if (m.unclCount) out.push({ ic: "alert", cls: "warn", t: `<b>${eur0(m.uncl)}</b> restent à trier sur ce mois : le bilan est encore approximatif.` });
-    return out;
   }
   function renderOperations() {
     const cov = coverage();
@@ -1792,49 +1902,6 @@ details.tri-more > .picks2 { margin-top: 8px; }
     return html;
   }
 
-  /* ================= Projets ================= */
-  function renderProjets() {
-    const m = computeMonth(ymNow());
-    let html = head("Épargne", "Ton matelas, tes projets, ta voiture");
-    html += renderEpargne(m);
-    html += renderVoiture(m);
-    html += renderProchains();
-    html += renderPrevu();
-    html += renderBuy();
-    app.innerHTML = html;
-    updateBuy();
-  }
-
-  function renderBuy() {
-    const opts = Array.from({ length: 12 }, (_, i) => ymShift(ymNow(), i)).map((ym) => `<option value="${ym}" ${buy.ym === ym ? "selected" : ""}>${cap(MONTHS[Number(ym.slice(5)) - 1])}${ym.slice(0, 4) !== ymNow().slice(0, 4) ? " " + ym.slice(0, 4) : ""}</option>`).join("");
-    return `<section class="panel" aria-label="Et si j'achète"><h2>Et si j'achète…</h2>
-      <div class="grid2"><div class="field"><label for="buyAmt" class="sr">Montant</label><input class="big-in" id="buyAmt" inputmode="decimal" placeholder="0 €" value="${esc(buy.amount)}" autocomplete="off"></div>
-        <div class="field"><label for="buyYm" class="sr">Mois</label><select id="buyYm" class="input">${opts}</select></div></div>
-      <div id="buyRes" aria-live="polite"></div></section>`;
-  }
-  function updateBuy() {
-    const box = document.getElementById("buyRes");
-    if (!box) return;
-    const a = parseAmount(buy.amount);
-    if (!(a > 0)) { box.innerHTML = `<p class="hint">Un téléphone, un week-end, des meubles : tape le prix et choisis le mois, tu vois l'effet sur ton épargne.</p>`; return; }
-    const base = projection(6, 0);
-    const tmp = { id: "__buy", label: "Achat", type: "out", ym: buy.ym, amount: a, done: false };
-    state.events.push(tmp);
-    let withB, mB, mBase;
-    try { withB = projection(6, 0); mB = computeMonth(buy.ym); } finally { state.events.pop(); }
-    mBase = computeMonth(buy.ym);
-    const idx = Math.max(0, ymDiff(ymNow(), buy.ym));
-    const lastBase = base[5].cum, lastWith = withB[5].cum;
-    const t = savingTarget();
-    let msg;
-    if (mB.end < 0) msg = `<p class="v1 ko" style="font-weight:650">${cap(MONTHS[Number(buy.ym.slice(5)) - 1])} finirait dans le rouge (${eur0(mB.end)}).</p>`;
-    else if (t > 0 && mB.end < t) msg = `<p style="font-weight:650;color:var(--warn)">Faisable, mais ton épargne de ${MONTHS[Number(buy.ym.slice(5)) - 1]} tomberait à ${eur0(mB.end)} au lieu de ${eur0(t)}.</p>`;
-    else msg = `<p style="font-weight:650;color:var(--good)">Faisable sans toucher à ton épargne.</p>`;
-    box.innerHTML = `${msg}<dl class="summary" style="margin-top:8px"><dt>Fin de ${MONTHS[Number(buy.ym.slice(5)) - 1]}</dt><dd>${eur0(mB.end)} <span class="tag">au lieu de ${eur0(mBase.end)}</span></dd>
-      ${idx <= 5 ? `<dt>De côté d'ici ${monthName(base[5].ym)}</dt><dd>${eur0(lastWith)} <span class="tag">au lieu de ${eur0(lastBase)}</span></dd>` : ""}</dl>
-      <button class="btn secondary" data-act="buyAdd" style="margin-top:10px">L'ajouter à mes prévisions</button>`;
-  }
-
   // Versements vers le compte d'épargne Revolut depuis le début de la file (ils remplissent les projets tout seuls)
   const isSavingsTx = (t) => /compte d.?[ée]pargne|coffre/i.test(t.label || "");
   // Pas de virement à faire : chaque mois terminé et importé, ce qui n'a pas été dépensé (rentrées − sorties) va au matelas.
@@ -1865,214 +1932,32 @@ details.tri-more > .picks2 { margin-top: 8px; }
     while (ym < ymNow()) { if (!monthDone(ym)) return ym; ym = ymShift(ym, 1); }
     return null;
   }
-  // Chaque projet se remplit dans l'ordre ; l'épargne du mois va au premier qui n'est pas plein
-  function queueState() {
-    const q = state.goals.filter((g) => g.queue);
-    let pool = round2(q.reduce((a, g) => a + (g.saved || 0), 0) + Math.max(0, savingsFlow()));
-    const monthly = state.settings.goal || 0;
-    let cumNeed = 0;
-    return q.map((g) => {
-      const have = round2(Math.min(g.target, Math.max(0, pool)));
-      pool = round2(pool - have);
-      const rest = round2(g.target - have);
-      cumNeed = round2(cumNeed + rest);
-      const months = rest <= 0 ? 0 : monthly > 0 ? Math.ceil(cumNeed / monthly) : null;
-      return { g, have, rest, months, eta: months === null ? null : ymShift(ymNow(), months), pct: g.target > 0 ? Math.min(100, (have / g.target) * 100) : 0 };
-    });
-  }
-  function renderEpargne(m) {
-    const t = savingTarget();
-    const qs = queueState();
-    const dated = state.goals.filter((g) => !g.queue);
-    const qRows = qs.map((x, i) => `<button class="row goal" data-act="editGoal" data-id="${esc(x.g.id)}">${tileRaw(FAM.epargne.color, i === 0 ? "lock" : "spark")}<span class="name">${esc(x.g.name)}</span><span class="amt">${eur0(x.have)}<span class="tag"> sur ${eur0(x.g.target)}</span></span>
-        <div class="bar" aria-hidden="true"><i class="${x.rest <= 0 ? "done" : ""}" style="width:${x.pct}%"></i></div>
-        <span class="sub">${x.rest <= 0 ? "Rempli" : x.eta ? `${i === 0 || qs[i - 1].rest <= 0 ? "En cours" : `Ensuite`}, rempli vers ${monthName(x.eta)}` : "Indique ton épargne mensuelle pour avoir une date"}</span></button>`).join("");
-    const dRows = dated.map((g) => {
-      const n = goalNeed(g), pct = g.target > 0 ? Math.min(100, ((g.saved || 0) / g.target) * 100) : 0;
-      return `<button class="row" data-act="editGoal" data-id="${esc(g.id)}"><span class="name">${esc(g.name)}</span><span class="amt">${eur0(g.saved || 0)}<span class="tag"> sur ${eur0(g.target)}</span></span>
-        <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span class="sub">${n.done ? "Atteint" : n.late ? `Date passée, il manque ${eur0(n.rest)}` : `${eur0(n.need)} par mois en plus, jusqu'en ${monthName(ymOf(g.date))}`}</span></button>`;
-    }).join("");
-    const rv = reste(m);
-    const first = qs.find((x) => x.rest > 0);
-    return `<section class="section"><div class="sh"><h2>Matelas et projets</h2><span>${t > 0 ? `${eur0(t)} par mois` : "rien de prévu"}</span></div>
-      <div class="rows"><div class="money-row"><label for="goal">Chaque mois, quoi qu'il arrive<small>Mis de côté avant de calculer ce que tu peux dépenser</small></label><div class="money-in"><input id="goal" inputmode="decimal" value="${esc(amountText(state.settings.goal))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
-      ${qs.length ? `<div class="rows">${qRows}</div><p class="hint">${state.settings.goal > 0 ? `Tes ${eur0(state.settings.goal)} par mois remplissent ces projets dans l'ordre${first ? `, en commençant par ${esc(first.g.name.toLowerCase())}` : ""}.` : "Indique combien tu mets de côté chaque mois : les projets se remplissent dans l'ordre."} Rien à virer : à la fin de chaque mois, ce que tu n'as pas dépensé remplit le matelas, dès que le relevé du mois est importé.${savingsPending() ? ` En attente : le relevé complet de ${monthName(savingsPending())}.` : ""}</p>` : ""}
-      ${dRows ? `<div class="rows">${dRows}</div>` : ""}
-      <div class="rows"><button class="row" data-act="editGoal"><span class="name" style="color:var(--accent)">Ajouter un projet d'épargne</span>${ICON.chev}<span class="sub">Matelas de sécurité, apport, PC, voyage</span></button></div>
-      ${t > 0 ? `<p class="hint" style="color:${rv.libre >= 0 ? "var(--good)" : "var(--bad)"}">${rv.libre >= 0 ? `Ce mois-ci, tes ${eur0(t)} d'épargne tiennent : il reste ${eur0(rv.libre)} de libre en plus de tes budgets.` : `Ce mois-ci, il manque ${eur0(-rv.libre)} pour tenir à la fois tes budgets et tes ${eur0(t)} d'épargne.`}</p>` : ""}</section>`;
-  }
-
-  // Coût réel d'une offre en plus du loyer : assurance, et différence d'essence avec le budget actuel
-  function carExtra(c) {
-    const ess = cat("essence");
-    const fuel = c && c.fuel !== undefined && c.fuel !== null && c.fuel !== "" && ess ? c.fuel - ess.budget : 0;
-    return round2(((c && c.ins) || 0) + fuel);
-  }
-  function carCalc(c, m) {
-    const v = cat("voiture");
-    const monthly = round2(c.rent + carExtra(c));
-    const sale = state.settings.carSale || 0;
-    const cash = round2(sale - (c.deposit || 0));
-    const total = c.months > 0 ? round2((c.deposit || 0) + c.rent * c.months) : null;
-    const r = reste(m);
-    const delta = round2(monthly - (v && v.active ? v.budget : 0));
-    const freeWith = round2(r.libre - delta);
-    return { monthly, cash, total, freeWith, freeNow: r.libre, keeps: freeWith >= 0 };
-  }
-  function renderVoiture(m) {
-    const cars = state.cars;
-    const sale = state.settings.carSale || 0;
-    const from = state.settings.financeFrom || "";
-    const qs = queueState(), first = qs.find((x) => x.rest > 0);
-    let inner = cars.map((c) => {
-      const k = carCalc(c, m);
-      const parts = [`loyer ${eur0(c.rent)}`].concat(c.ins ? [`assurance ${eur0(c.ins)}`] : []).concat(c.fuel !== undefined && c.fuel !== "" && cat("essence") ? [`essence ${c.fuel - cat("essence").budget >= 0 ? "+" : "−"}${eur0(Math.abs(c.fuel - cat("essence").budget))}`] : []);
-      let mat = "";
-      if (first && k.cash > 0 && state.settings.goal > 0) {
-        const before = first.months, after = Math.max(0, Math.ceil(Math.max(0, first.rest - k.cash) / state.settings.goal));
-        mat = ` Sur ${esc(first.g.name.toLowerCase())}, rempli ${before - after > 0 ? `${before - after} mois plus tôt` : "à la même date"}.`;
-      }
-      return `<button class="row car" data-act="editCar" data-id="${esc(c.id)}"><span class="name">${esc(c.name)}</span><span class="amt">${eur0(k.monthly)}<span class="tag"> /mois</span></span>
-        <span class="sub carlines"><span>${cap(parts.join(", "))}.</span>${sale > 0 || c.deposit ? `<span>À la signature : <b class="${k.cash >= 0 ? "pos" : "neg"}">${k.cash >= 0 ? "+" : "−"}${eur0(Math.abs(k.cash))}</b> (${sale > 0 ? `vente ${eur0(sale)} − ` : ""}apport ${eur0(c.deposit || 0)}).${mat}</span>` : ""}
-        <span>Avec elle ce mois-ci : <b class="${k.freeWith < 0 ? "neg" : ""}">${k.freeWith < 0 ? `il manquerait ${eur0(-k.freeWith)}` : `${eur0(k.freeWith)} de libre`}</b> au lieu de ${eur0(k.freeNow)}${state.settings.goal > 0 ? `, ${k.keeps ? "épargne tenue" : "<b class=\"neg\">épargne pas tenue</b>"}` : ""}.</span></span></button>`;
-    }).join("");
-    inner += `<button class="row" data-act="editCar"><span class="name" style="color:var(--accent)">Ajouter une offre</span>${ICON.chev}<span class="sub">Loyer, assurance, apport, essence : le vrai coût par mois</span></button>`;
-    const full = cars.filter((c) => c.rent > 0);
-    return `<section class="section"><div class="sh"><h2>Voiture</h2><span>${cars.length ? `${cars.length} offre${cars.length > 1 ? "s" : ""}` : ""}</span></div>
-      <div class="rows"><div class="money-row"><label for="carSale">Vente de ta voiture actuelle<small>Ce que tu penses en tirer</small></label><div class="money-in"><input id="carSale" inputmode="decimal" value="${esc(amountText(sale))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
-        <div class="money-row"><label for="financeFrom">Financement possible à partir de<small>Fin de ta période d'essai</small></label><input type="month" id="financeFrom" class="input" value="${esc(from)}"></div></div>
-      ${from && from > ymNow() ? `<p class="hint">Pas de signature avant ${monthName(from)} : les organismes demandent la fin de la période d'essai, ou un garant.</p>` : ""}
-      <div class="rows">${inner}</div>
-      ${full.length >= 2 ? `<div class="panel"><div class="hbars">${hbars(full.map((c) => ({ k: c.name, v: carCalc(c, m).monthly })).sort((a, b) => a.v - b.v))}</div><p class="hint">Coût réel par mois : loyer, assurance et écart d'essence avec ton budget actuel.</p></div>` : ""}</section>`;
-  }
-
-  function renderProchains() {
-    const opts = carOptions();
-    const p = projection(6, carMonthlyOf(projCar));
-    return `<section class="section"><div class="sh"><h2>6 prochains mois</h2><span>${eur0(p[5].cum)} de côté</span></div><div class="panel">
-      ${opts.length ? `<div class="field"><label for="projCar">Avec une voiture</label><select id="projCar"><option value="">Sans changement</option>${opts.map((o) => `<option value="${esc(o.id)}" ${projCar === o.id ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select></div>` : ""}
-      ${colChart("proj", p.map((x) => ({ k: monthShort(x.ym), v: x.end })), { label: "Reste prévu sur 6 mois", defaultSel: 0 })}
-      <div class="table-wrap"><table class="table"><thead><tr><th>Mois</th><th>Reste</th><th>Cumul</th></tr></thead><tbody>${p.map((x) => `<tr><td>${cap(monthShort(x.ym))}${x.ev ? ` <span class="tag">(${sgn(x.ev)} prévu)</span>` : ""}</td><td class="${x.end < 0 ? "neg" : ""}">${eur0(x.end)}</td><td>${eur0(x.cum)}</td></tr>`).join("")}</tbody></table></div>
-      <p class="hint">Le mois en cours compte tes vraies dépenses ; les suivants, ton budget et tes prévisions.</p></div></section>`;
-  }
-
-  function renderPrevu() {
-    const list = state.events.filter((e) => e.ym >= ymNow()).sort((a, b) => (a.ym < b.ym ? -1 : 1));
-    const rows = list.map((e) => `<button class="row" data-act="editEvent" data-id="${esc(e.id)}"><span class="name">${esc(e.label)}</span><span class="amt ${e.type === "in" ? "in" : ""} ${e.done ? "muted" : ""}">${e.type === "in" ? "+" : "−"}${eur(e.amount)}</span><span class="sub">${e.day && !e.day.endsWith("-01") ? cap(dayLabel(e.day)) : cap(monthName(e.ym))}${e.done ? ", arrivé" : ""}</span></button>`).join("");
-    return `<section class="section"><div class="sh"><h2>Prévu</h2><span>hors dépenses habituelles</span></div><div class="rows">${rows}
-      <button class="row" data-act="editEvent"><span class="name" style="color:var(--accent)">Ajouter une rentrée ou une dépense prévue</span>${ICON.chev}<span class="sub">Une prime, une facture annuelle, un cadeau</span></button></div></section>`;
-  }
-
-  /* ---------- Graphiques ---------- */
-  function hbars(items) {
-    const max = Math.max(1, ...items.map((i) => Math.abs(i.v)));
-    return items.map((i) => `<div class="hbar ${i.base ? "base" : ""} ${i.v < 0 ? "neg" : ""}"><span class="k">${esc(i.k)}</span><span class="v ${i.v < 0 ? "neg" : ""}">${eur0(i.v)}</span><span class="track" aria-hidden="true"><i style="width:${Math.max(2, (Math.abs(i.v) / max) * 100)}%"></i></span></div>`).join("");
-  }
-  function niceStep(span) { const raw = span / 3; const p = Math.pow(10, Math.floor(Math.log10(raw))); const n = raw / p; return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * p; }
-  function colChart(id, data, opts = {}) {
-    const W = 340, H = 170, padL = 4, padR = 4, padT = 24, padB = 22;
-    const vals = data.map((d) => d.v), max = Math.max(0, ...vals), min = Math.min(0, ...vals), span = max - min || 1;
-    const y = (v) => padT + ((max - v) / span) * (H - padT - padB);
-    const n = data.length, slot = (W - padL - padR) / n, bw = Math.min(30, slot * 0.56);
-    const sel = chartSel[id] ?? (opts.defaultSel ?? n - 1);
-    let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || "")}">`;
-    const step = niceStep(span);
-    for (let g = Math.ceil(min / step) * step; g <= max + 0.001; g += step) s += `<line class="grid" x1="${padL}" x2="${W - padR}" y1="${y(g)}" y2="${y(g)}"/>`;
-    s += `<line class="base" x1="${padL}" x2="${W - padR}" y1="${y(0)}" y2="${y(0)}"/>`;
-    data.forEach((d, i) => {
-      const cx = padL + slot * i + slot / 2, x = cx - bw / 2, y0 = y(0), y1 = y(d.v), h = Math.abs(y1 - y0), r = Math.min(4, h);
-      const cls = `colbar ${d.v < 0 ? "neg" : ""}`;
-      if (d.v >= 0) s += `<path class="${cls}" d="M${x},${y0} V${y1 + r} Q${x},${y1} ${x + r},${y1} H${x + bw - r} Q${x + bw},${y1} ${x + bw},${y1 + r} V${y0} Z"/>`;
-      else s += `<path class="${cls}" d="M${x},${y0} V${y1 - r} Q${x},${y1} ${x + r},${y1} H${x + bw - r} Q${x + bw},${y1} ${x + bw},${y1 - r} V${y0} Z"/>`;
-      s += `<text class="lbl" x="${cx}" y="${H - 6}" text-anchor="middle">${esc(d.k)}</text>`;
-      if (i === sel) s += `<text class="val" x="${Math.min(W - 30, Math.max(30, cx))}" y="${d.v >= 0 ? y1 - 6 : y1 + 14}" text-anchor="middle">${eur0(d.v)}</text>`;
-      s += `<rect class="hit" x="${padL + slot * i}" y="0" width="${slot}" height="${H}" tabindex="0" role="button" aria-label="${esc(d.k)} : ${eur0(d.v)}" data-act="chartSel" data-chart="${id}" data-i="${i}"/>`;
-    });
-    return s + "</svg>";
-  }
-
   /* ================= Réglages ================= */
   function renderReglages() {
     let html = head("Réglages", "");
     const cov = coverage();
-    html += `<div class="rows"><button class="row" data-act="importCsv"><span class="tile" style="--tile:#007AFF" aria-hidden="true">${ICON.in}</span><span class="name">Importer le relevé Revolut</span>${ICON.chev}<span class="sub">${cov ? `Relevé à jour au ${shortDate(cov)}. Une fois par mois suffit.` : "Le fichier CSV exporté depuis l'app Revolut, une fois par mois"}</span></button></div>`;
-    const items = [
-      ["iphone", "iPhone : Apple Pay et rappels", state.tx.some((t) => t.source === "applepay") ? `${state.tx.filter((t) => t.source === "applepay").length} paiements Apple Pay reçus` : "Noter tes paiements tout seuls, rappels du soir et du mois"],
-      ["__code", "Appliquer des réglages", "Coller un texte de réglages préparé (budgets, règles de tri, prévisions)"],
-      ["sauvegarde", "Sauvegarde", state.settings.lastBackup ? `Dernière le ${new Date(state.settings.lastBackup).toLocaleDateString("fr-FR")}` : "Jamais sauvegardé"],
-      ["__reset", "Repartir à zéro", "Sauvegarde, puis efface tout pour recommencer proprement"],
-    ];
-    const TILE = { iphone: ["#34C759", ICON.phone], __code: ["#8E8E93", ICON.paste], sauvegarde: ["#5856D6", ICON.save], __reset: ["#FF3B30", ICON.reset] };
-    html += `<div class="rows">${items.map(([v, t, s]) => `<button class="row" ${v === "__code" ? 'data-act="codeOpen"' : v === "__reset" ? 'data-act="resetAsk"' : `data-act="go" data-v="${v}"`}><span class="tile" style="--tile:${TILE[v][0]}" aria-hidden="true">${TILE[v][1]}</span><span class="name">${t}</span>${v === "sauvegarde" && backupLate() ? `<span class="st near">à faire</span>` : ICON.chev}<span class="sub">${esc(s)}</span></button>`).join("")}</div>`;
-    html += `<div class="panel"><label class="switch" for="hapOn"><span>Vibrer au toucher<small>Quand tu ajoutes une dépense, coches une facture, ranges une opération</small></span><input type="checkbox" id="hapOn" ${state.settings.haptics !== false ? "checked" : ""}></label>
-      <label class="switch" for="estOn"><span>Estimer les dépenses pas encore importées<small>D'après ta moyenne par jour des mois complets</small></span><input type="checkbox" id="estOn" ${state.settings.estimate !== false ? "checked" : ""}></label>
-      <label class="field" for="alertPct"><span class="flabel">Barre orange quand une catégorie atteint</span><select id="alertPct">${[0.7, 0.8, 0.9].map((v) => `<option value="${v}" ${(state.settings.alertPct || 0.8) === v ? "selected" : ""}>${Math.round(v * 100)} %</option>`).join("")}</select></label></div>`;
+    html += `<div class="rows">
+      <button class="row" data-act="importCsv"><span class="tile" style="--tile:#007AFF" aria-hidden="true">${ICON.in}</span><span class="name">Importer le relevé Revolut</span>${ICON.chev}<span class="sub">${cov ? `Relevé à jour au ${shortDate(cov)}. Une fois par mois suffit.` : "Le fichier CSV exporté depuis l'app Revolut, une fois par mois"}</span></button>
+      <button class="row" data-act="go" data-v="sauvegarde"><span class="tile" style="--tile:#5856D6" aria-hidden="true">${ICON.save}</span><span class="name">Sauvegarde</span>${backupLate() ? `<span class="st near">à faire</span>` : ICON.chev}<span class="sub">${state.settings.lastBackup ? `Dernière le ${new Date(state.settings.lastBackup).toLocaleDateString("fr-FR")}` : "Jamais sauvegardé"}</span></button>
+      <button class="row" data-act="resetAsk"><span class="tile" style="--tile:#FF3B30" aria-hidden="true">${ICON.reset}</span><span class="name">Repartir à zéro</span>${ICON.chev}<span class="sub">Sauvegarde, puis efface tout pour recommencer</span></button></div>`;
+    html += `<div class="panel"><label class="switch" for="hapOn"><span>Vibrer au toucher<small>Quand tu ajoutes une dépense ou coches une charge</small></span><input type="checkbox" id="hapOn" ${state.settings.haptics !== false ? "checked" : ""}></label>
+      <label class="field" for="alertPct"><span class="flabel">Barre orange quand une dépense variable atteint</span><select id="alertPct">${[0.7, 0.8, 0.9].map((v) => `<option value="${v}" ${(state.settings.alertPct || 0.8) === v ? "selected" : ""}>${Math.round(v * 100)} % de son budget</option>`).join("")}</select></label></div>`;
+    html += `<p class="hint">Le relevé complète ce que tu as ajouté à la main : chaque dépense ajoutée est remplacée par sa vraie ligne, rien n'est compté deux fois.</p>`;
     app.innerHTML = html;
+  }
+
+  /* ================= Premier lancement ================= */
+  function renderOnboarding() {
+    app.innerHTML = `<section class="section onb"><h1 class="onb-title">Fin de mois</h1>
+      <p class="hint" style="font-size:17px;line-height:23px">Ton budget sur iPhone : ce qui rentre, ce qui part, ce que tu épargnes. Et ce que chaque dépense change à ton épargne. Tout reste sur cet iPhone.</p>
+      <form id="onbForm" class="section" novalidate><div class="rows"><div class="money-row"><label for="o-salaire">Ton salaire net par mois</label>${moneyInput("o-salaire", 0, "Salaire net par mois")}</div></div>
+        <p class="err" id="onbErr" hidden>Indique ton salaire pour commencer.</p>
+        <button class="btn primary" type="submit">Créer mon budget</button></form>
+      <button class="btn link" type="button" data-act="restore">Restaurer une sauvegarde</button></section>`;
   }
 
   function moneyInput(id, value, label, extra = "") {
     return `<div class="money-in"><input id="${id}" inputmode="decimal" autocomplete="off" value="${esc(amountText(value))}" placeholder="0" aria-label="${esc(label)}" ${extra}><span aria-hidden="true">€</span></div>`;
-  }
-
-  // Versements vers le compte d'épargne pendant un mois passé
-  const savingsMonth = (ym) => round2(state.tx.filter((t) => ymOf(t.date) === ym && isSavingsTx(t)).reduce((a, t) => a - t.amount, 0));
-
-  /* ================= Mon mois : où part l'argent ================= */
-  function renderBudget() {
-    const ym = budgetYM, now = ymNow(), past = ym < now;
-    const m = computeMonth(ym, past ? { raw: true } : {});
-    const right = `<div class="mnav"><button class="navbtn" data-act="bprev" aria-label="Mois précédent">${ICON.prev}</button><button class="navbtn" data-act="bnext" aria-label="Mois suivant" ${ym < now ? "" : "disabled"}>${ICON.next}</button></div>`;
-    let html = head("Mon mois", cap(monthName(ym)), { right });
-    const r = past ? null : reste(m);
-    const sumA = (fn) => round2(m.lines.filter(fn).reduce((a, l) => a + l.actual, 0));
-
-    // 1. Le calcul, en quelques lignes : le même que le chiffre de l'accueil
-    const inc = past ? sumA((l) => l.c.kind === "revenu") : m.inc;
-    const fix = past ? sumA((l) => l.c.kind === "fixe") : m.fix;
-    const spentEnv = sumA((l) => l.c.kind === "enveloppe");
-    const spentD = round2(spentEnv + m.uncl);
-    const prevu = past ? 0 : round2(m.evOut + m.car + (r.est || 0));
-    const ep = past ? Math.max(0, savingsMonth(ym)) : r.target;
-    const left = past ? round2(inc - fix - spentD - ep) : r.R;
-    const segs = [["Factures", fix, FAM.fixe.color], ["Dépensé au quotidien", spentD, FAM.ess.color]].concat(prevu > 0 ? [["Prévu", prevu, FAM.imprevu.color]] : []).concat(ep > 0 ? [[past ? "Mis de côté" : "Épargne", ep, FAM.epargne.color]] : []);
-    const base = Math.max(inc, segs.reduce((a, s) => a + s[1], 0) + Math.max(0, left)) || 1;
-    html += `<section class="panel cascade" aria-label="Le mois en résumé">
-      <div class="cbar" aria-hidden="true">${segs.filter((s) => s[1] > 0).map(([, v, col]) => `<i style="width:${(v / base) * 100}%;background:${col}"></i>`).join("")}${left > 0 ? `<i class="free" style="width:${(left / base) * 100}%"></i>` : ""}</div>
-      <dl class="cleg">
-        <dt><i style="visibility:hidden"></i>${past ? "Reçu" : "Ce qui rentre"}</dt><dd>${eur0(inc)}</dd>
-        ${segs.map(([k, v, col]) => `<dt><i style="background:${col}"></i>${k}</dt><dd>− ${eur0(v)}</dd>`).join("")}
-        <dt class="total"><i class="${left >= 0 ? "free" : "neg"}"></i>${past ? (left >= 0 ? "Il est resté" : "Dépassement") : "Pour finir le mois"}</dt><dd class="total ${left < 0 ? "neg" : ""}">${eur0(left)}</dd>
-      </dl></section>`;
-
-    // 2. Factures : un rond à cocher quand c'est payé
-    const dim = daysIn(ym), day = past ? dim + 1 : new Date().getDate();
-    const pins = fixedPins(m, dim).filter((p) => p.amount > 0 || p.paid).sort((a, b) => (a.day || 99) - (b.day || 99));
-    const paidN = pins.filter((p) => p.paid).length;
-    if (pins.length) html += `<section class="section"><div class="sh"><h2>Factures</h2><span>${paidN} payée${paidN > 1 ? "s" : ""} sur ${pins.length}</span></div><div class="rows">${pins.map((p) => billRow(p, past, day)).join("")}</div>${past ? "" : `<p class="hint">Touche le rond quand une facture est payée. Le relevé importé coche les prélèvements tout seul.</p>`}</section>`;
-
-    // 3. Quotidien : une barre par catégorie, les plus dépensées en haut
-    const envL = m.lines.filter((l) => l.c.kind === "enveloppe" && (l.c.active || l.actual !== 0));
-    const spentL = envL.filter((l) => l.actual > 0).sort((a, b) => b.actual - a.actual);
-    const zeroL = envL.filter((l) => !(l.actual > 0));
-    const planSum = round2(envL.reduce((a, l) => a + l.plan, 0));
-    const autre = m.uncl > 0 ? `<button class="row" data-act="opsAutre">${tileRaw("#8E8E93", "question")}<span class="name">Autre</span><span class="st">${eur0(m.uncl)}</span><span class="sub">${m.unclCount} dépense${m.unclCount > 1 ? "s" : ""} que l'appli n'a pas reconnue${m.unclCount > 1 ? "s" : ""}. Touche pour les ranger.</span></button>` : "";
-    if (envL.length || autre) {
-      html += `<section class="section"><div class="sh"><h2>Quotidien</h2><span>${eur0(spentD)}${planSum > 0 ? ` sur ${eur0(planSum)}` : ""}</span></div>
-        ${spentL.length || autre ? `<div class="rows">${spentL.map((l) => envRow(l, m, past)).join("")}${autre}</div>` : ""}
-        ${zeroL.length ? `<details class="zero"${spentL.length || autre ? "" : " open"}><summary><span>Rien dépensé${spentL.length ? "" : " pour l'instant"} : ${zeroL.map((l) => esc(shortName(l.c).toLowerCase())).join(", ")}</span>${ICON.chev}</summary><div class="rows">${zeroL.map((l) => envRow(l, m, past)).join("")}</div></details>` : ""}
-      </section>`;
-    }
-
-    // 4. Revenus, puis le détail
-    const revL = m.lines.filter((l) => l.c.kind === "revenu" && (l.c.active || l.has));
-    const revRow = (l) => {
-      const c = l.c, when = l.has ? m.txs.filter((t) => classify(t) === c.id).map((t) => t.date).sort().pop() : null, ud = l.has ? null : usualDay(c);
-      return `<button class="row" data-act="openCat" data-id="${esc(c.id)}">${tile(c)}<span class="name">${esc(c.name)}</span><span class="amt in">+${eur(l.has ? l.actual : l.plan)}</span><span class="sub ${l.has ? "okt" : ""}">${l.has ? `Reçu le ${Number(when.slice(8))}` : past ? "Pas vu ce mois-là" : ud ? `À venir, vers le ${ud}` : "À venir"}</span></button>`;
-    };
-    if (revL.length) html += `<section class="section"><div class="sh"><h2>Revenus</h2><span>${eur0(inc)}</span></div><div class="rows">${revL.map(revRow).join("")}</div></section>`;
-    html += `<div class="rows"><button class="row" data-act="opsAll" data-from="budget"><span class="name">Toutes les opérations de ${MONTHS[Number(ym.slice(5)) - 1]}</span>${ICON.chev}</button></div>`;
-    if (!past) html += `<div class="btn-row"><button class="btn link" data-act="addCatAsk">Ajouter une catégorie</button></div>`;
-    app.innerHTML = html;
   }
 
   // Une facture : un rond à cocher, le nom, le montant, le jour
@@ -2114,7 +1999,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
     const near = !over && b > 0 && (fast || l.actual >= b * (state.settings.alertPct || 0.8));
     const w = b > 0 ? Math.min(100, (l.actual / b) * 100) : 0;
     const st = b > 0 ? `<span class="st ${over ? "over" : near ? "near" : ""}">${eur0(l.actual)} sur ${eur0(b)}</span>` : `<span class="st">${eur0(l.actual)}</span>`;
-    const sub = over ? `<span class="sub badt">${eur0(l.actual - b)} de trop</span>` : fast ? `<span class="sub warnt">À ce rythme : ${eur0(pc)} à la fin du mois</span>` : b > 0 ? "" : `<span class="sub">Pas de budget prévu</span>`;
+    const sub = over ? `<span class="sub badt">${eur0(l.actual - b)} de trop, pris sur ton épargne</span>` : fast ? `<span class="sub warnt">À ce rythme : ${eur0(pc)} à la fin du mois</span>` : b > 0 ? `<span class="sub">Reste ${eur0(b - l.actual)}</span>` : `<span class="sub">Pas de budget prévu</span>`;
     return `<button class="row env" data-act="openCat" data-id="${esc(c.id)}">${tile(c)}<span class="name">${esc(c.name)}</span>${st}${b > 0 ? `<div class="bar" aria-hidden="true"><i class="${over ? "over" : near ? "near" : "done"}" style="width:${w}%"></i></div>` : ""}${sub}</button>`;
   }
 
@@ -2153,63 +2038,15 @@ details.tri-more > .picks2 { margin-top: 8px; }
     app.innerHTML = html;
   }
 
-  function renderIphone() {
-    const site = IN_CLAUDE ? "" : location.origin + location.pathname;
-    const n = state.tx.filter((t) => t.source === "applepay").length;
-    let html = head("iPhone", "Apple Pay et rappels, avec l'app Raccourcis");
-    html += `<div class="panel"><p class="hint">À chaque paiement Apple Pay, l'iPhone peut noter le commerce et le montant pour toi. À l'import du relevé Revolut, chaque paiement noté est remplacé par la vraie ligne du relevé : rien n'est compté deux fois.</p>
-      <dl class="summary"><dt>Paiements Apple Pay reçus</dt><dd>${n}</dd></dl><button class="btn primary" data-act="importJournal">Importer le journal Apple Pay</button></div>`;
-    html += `<section class="section"><div class="sh"><h2>1. Noter chaque paiement, sans rien ouvrir</h2></div><div class="panel guide"><ol>
-      <li>App <b>Raccourcis</b>, onglet <b>Automatisation</b>, <b>+</b>, puis <b>Transaction</b>.</li>
-      <li>Choisis ta carte Revolut, garde toutes les catégories, puis <b>Exécuter immédiatement</b>.</li>
-      <li>Nouveau raccourci vide, avec dans l'ordre :<ul><li><b>Date actuelle</b>, puis <b>Formater la date</b>, format personnalisé <code>yyyy-MM-dd|HH:mm</code></li>
-        <li><b>Texte</b> : <code>[Date formatée]|[Commerçant]|[Montant]</code>, les deux derniers pris dans l'entrée du raccourci</li>
-        <li><b>Ajouter au fichier texte</b> : iCloud Drive, dossier <code>Fin de mois</code>, fichier <code>journal-apple-pay.txt</code>, nouvelle ligne</li></ul></li>
-      <li>Le dimanche, reviens sur cette page (Réglages, iPhone) et touche <b>Importer le journal Apple Pay</b>.</li></ol>
-      <p class="hint">Ligne attendue : <code>2026-10-08|14:32|Intermarché|12,50 €</code>. Les noms des actions peuvent varier un peu selon ta version d'iOS.</p></div></section>`;
-    html += `<section class="section"><div class="sh"><h2>2. Rappel du soir</h2></div><div class="panel guide"><ol>
-      <li><b>Automatisation</b>, <b>+</b>, <b>Heure de la journée</b> : 21:00, quotidien, <b>Exécuter immédiatement</b>.</li>
-      <li>Action <b>Afficher la notification</b> : « Ajoute tes dépenses du jour dans Fin de mois ».</li></ol></div></section>
-      <section class="section"><div class="sh"><h2>3. Rappel du relevé, une fois par mois</h2></div><div class="panel guide"><ol>
-      <li><b>Automatisation</b>, <b>+</b>, <b>Heure de la journée</b> : 19:00, mensuel, le 1er, <b>Exécuter immédiatement</b>.</li>
-      <li>Action <b>Afficher la notification</b> : « Importe ton relevé Revolut dans Fin de mois ».</li></ol>
-      <p class="hint">Dans l'appli : roue dentée de l'accueil, puis Importer le relevé Revolut. Le relevé ajoute les prélèvements et remplace chaque dépense ajoutée à la main par la vraie ligne : rien n'est compté deux fois.</p></div></section>
-      <p class="hint">Limites : l'automatisation Apple Pay se déclenche aussi sur un paiement refusé et peut parfois échouer. Un lien ouvert depuis Raccourcis s'ouvre dans Safari et pas dans l'appli : c'est pour ça que le journal passe par un fichier.</p>`;
-    app.innerHTML = html;
-  }
-
   function renderSauvegarde() {
     const last = state.settings.lastBackup;
     let html = head("Sauvegarde", "Tes données ne sont que sur cet iPhone");
     html += `<div class="panel"><p class="hint">${last ? `Dernière sauvegarde le ${new Date(last).toLocaleDateString("fr-FR")}.` : "Aucune sauvegarde pour l'instant."} Range le fichier dans Fichiers ou iCloud Drive : si l'iPhone efface les données du site, c'est la seule façon de les retrouver.</p>
       <button class="btn primary" data-act="backup">Créer une sauvegarde</button><button class="btn secondary" data-act="restore">Restaurer une sauvegarde</button></div>
-      <section class="section"><div class="sh"><h2>Données</h2></div><div class="panel"><p class="hint">${state.tx.length} opérations, ${state.events.length} prévisions, ${state.goals.length} projets d'épargne, ${state.cars.length} offres de voiture.</p>
+      <section class="section"><div class="sh"><h2>Données</h2></div><div class="panel"><p class="hint">${state.tx.length} opérations, ${state.events.length} prévisions, ${state.scenarios.length} comparaisons.</p>
       <button class="btn danger" data-act="wipe">Effacer toutes les données</button></div></section>`;
     app.innerHTML = html;
   }
-
-  /* ================= Premier lancement ================= */
-  function renderOnboarding() {
-    const cats = defaultCategories();
-    const steps = [
-      { kind: "revenu", title: "Ce qui rentre", text: "Ton salaire net, tel qu'il arrive sur ton compte." },
-      { kind: "fixe", title: "Tes factures", text: "Ce qui part chaque mois à montant connu. Laisse vide ce qui ne te concerne pas." },
-      { kind: "enveloppe", title: "Ton quotidien", text: "Ce que tu prévois par mois pour les courses, l'essence, les sorties." },
-      { kind: "goal", title: "Ton épargne", text: "Ce que tu veux mettre de côté chaque mois. L'app le protège avant de te dire ce que tu peux dépenser." },
-    ];
-    const st = steps[onb.step - 1];
-    const val = (id) => onb.vals[id] ?? "";
-    const rows = st.kind === "goal"
-      ? `<div class="money-row"><label for="o-goal">Chaque mois<small>Facultatif</small></label>${moneyInput("o-goal", parseAmount(val("goal")) || 0, "Épargne mensuelle")}</div>`
-      : cats.filter((c) => c.kind === st.kind).map((c) => `<div class="money-row"><label for="o-${c.id}">${esc(c.name)}${c.id === "voiture" ? "<small>Comptée quand tu l'activeras</small>" : c.id === "sorties" ? "<small>Restos, bars, loisirs</small>" : ""}</label>${moneyInput("o-" + c.id, parseAmount(val(c.id)) || 0, c.name)}</div>`).join("");
-    app.innerHTML = `${onb.step === 1 ? `<section class="section"><h1 class="onb-title">Fin de mois</h1><p class="hint" style="font-size:16px">Note chaque dépense en trois gestes : tu sais toujours ce qu'il te reste pour finir le mois. Tout reste sur cet iPhone.</p><div class="btn-row"><button class="btn secondary" type="button" data-act="onbCode">Coller mes réglages</button><button class="btn secondary" type="button" data-act="restore">Restaurer</button></div></section>` : ""}
-      <form id="onbForm" class="section" novalidate>
-        <div class="steps" aria-label="Étape ${onb.step} sur 4">${[1, 2, 3, 4].map((i) => `<i class="${i <= onb.step ? "on" : ""}"></i>`).join("")}</div>
-        <div class="section"><div class="sh"><h2>${st.title}</h2><span>${onb.step} sur 4</span></div><p class="hint">${st.text}</p><div class="rows">${rows}</div><p class="err" id="onbErr" hidden>Indique ton salaire net pour continuer.</p></div>
-        <div class="btn-row">${onb.step > 1 ? `<button class="btn secondary" type="button" data-act="onbBack">Retour</button>` : ""}<button class="btn primary" type="submit">${onb.step < 4 ? "Continuer" : "C'est parti"}</button></div>
-      </form>`;
-  }
-  function onbCollect() { for (const inp of app.querySelectorAll('#onbForm input[id^="o-"]')) onb.vals[inp.id.slice(2)] = inp.value; }
 
   /* ================= Feuilles ================= */
   function openSheet(inner, label) {
@@ -2296,7 +2133,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
 
   function eventSheet(id) {
     const e = id ? state.events.find((x) => x.id === id) : { id: "", label: "", type: "out", ym: ymShift(ymNow(), 1), amount: 0, done: false };
-    openSheet(`<h2>${id ? "Modifier" : "Prévoir"}</h2>
+    openSheet(`<h2>${id ? "Modifier" : "Mois particulier"}</h2>
       <div class="seg" role="group" aria-label="Type"><button type="button" data-act="evType" data-v="out" aria-pressed="${e.type === "out"}">Dépense</button><button type="button" data-act="evType" data-v="in" aria-pressed="${e.type === "in"}">Rentrée</button></div>
       <input type="hidden" id="evTypeVal" value="${esc(e.type)}">
       <div class="field"><label for="evLabel">Quoi</label><input type="text" id="evLabel" value="${esc(e.label)}" placeholder="Ex. : prime de décembre"></div>
@@ -2306,167 +2143,28 @@ details.tri-more > .picks2 { margin-top: 8px; }
       <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveEvent" data-id="${esc(e.id)}">Enregistrer</button></div>`, "Prévision");
   }
   function goalSheet(id) {
-    const g = id ? state.goals.find((x) => x.id === id) : { id: "", name: "", target: 0, saved: 0, date: "", queue: true };
-    const q = queueState().find((x) => x.g.id === g.id);
-    const qi = state.goals.filter((x) => x.queue).findIndex((x) => x.id === g.id);
-    openSheet(`<h2>${id ? esc(g.name) : "Nouveau projet d'épargne"}</h2>
-      ${q ? `<p class="meta">${eur0(q.have)} sur ${eur0(g.target)}${q.rest > 0 && q.eta ? `, rempli vers ${monthName(q.eta)}` : q.rest <= 0 ? ", rempli" : ""}</p>` : ""}
-      ${id ? `<div class="panel"><div class="field"><label for="gAdd">Ajouter de l'argent mis de côté</label><div class="grid2"><div class="money-in"><input id="gAdd" inputmode="decimal" placeholder="0" aria-label="Montant ajouté"><span aria-hidden="true">€</span></div><button class="btn primary" data-act="goalAdd" data-id="${esc(g.id)}">Ajouter</button></div></div><p class="hint">Une prime, la vente d'un objet, un virement fait ailleurs.</p></div>` : ""}
-      <div class="field"><label for="gName">Nom</label><input type="text" id="gName" value="${esc(g.name)}" placeholder="Ex. : matelas de sécurité"></div>
-      <div class="grid2"><div class="field"><label for="gTarget">Montant visé</label><div class="money-in"><input id="gTarget" inputmode="decimal" value="${esc(amountText(g.target))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
-        <div class="field"><label for="gSaved">Déjà de côté</label><div class="money-in"><input id="gSaved" inputmode="decimal" value="${esc(amountText(g.saved))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
-      <div class="field"><label for="gDate">Date limite (facultatif)</label><input type="month" id="gDate" value="${g.date ? esc(ymOf(g.date)) : ""}"><p class="hint">Sans date, le projet attend son tour dans la file. Avec une date, l'appli met de côté ce qu'il faut chaque mois en plus.</p></div><p class="err" id="gErr" hidden></p>
-      ${id && g.queue && qi > 0 ? `<button class="btn secondary" data-act="goalFirst" data-id="${esc(g.id)}">Le remplir en premier</button>` : ""}
-      ${id ? `<button class="btn danger" data-act="delGoal" data-id="${esc(g.id)}">Supprimer le projet</button>` : ""}
-      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveGoal" data-id="${esc(g.id)}">Enregistrer</button></div>`, "Projet d'épargne");
-  }
-  function carSheet(id) {
-    const c = id ? state.cars.find((x) => x.id === id) : { id: "", name: "", rent: 0, deposit: 0, months: 0, km: 0 };
-    openSheet(`<h2>${id ? "Modifier l'offre" : "Nouvelle offre"}</h2>
-      <div class="field"><label for="cName">Voiture</label><input type="text" id="cName" value="${esc(c.name)}" placeholder="Ex. : citadine hybride"></div>
-      <div class="grid2"><div class="field"><label for="cRent">Loyer par mois</label><div class="money-in"><input id="cRent" inputmode="decimal" value="${esc(amountText(c.rent))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
-        <div class="field"><label for="cDep">Apport</label><div class="money-in"><input id="cDep" inputmode="decimal" value="${esc(amountText(c.deposit))}" placeholder="0"><span aria-hidden="true">€</span></div></div></div>
-      <div class="grid2"><div class="field"><label for="cIns">Assurance par mois</label><div class="money-in"><input id="cIns" inputmode="decimal" value="${esc(amountText(c.ins || 0))}" placeholder="0"><span aria-hidden="true">€</span></div></div>
-        <div class="field"><label for="cFuel">Essence par mois avec elle</label><div class="money-in"><input id="cFuel" inputmode="decimal" value="${c.fuel !== undefined && c.fuel !== "" ? esc(amountText(c.fuel)) : ""}" placeholder="${cat("essence") ? esc(amountText(cat("essence").budget)) : "0"}"><span aria-hidden="true">€</span></div></div></div>
-      <div class="grid2"><div class="field"><label for="cMonths">Durée (mois)</label><input type="text" class="input" id="cMonths" inputmode="numeric" value="${c.months || ""}" placeholder="Ex. : 36"></div>
-        <div class="field"><label for="cKm">Km par an</label><input type="text" class="input" id="cKm" inputmode="numeric" value="${c.km || ""}" placeholder="Facultatif"></div></div><p class="err" id="cErr" hidden></p>
-      ${id ? `<button class="btn secondary" data-act="useCar" data-id="${esc(c.id)}">En faire la voiture de mon budget</button><button class="btn danger" data-act="delCar" data-id="${esc(c.id)}">Supprimer l'offre</button>` : ""}
-      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveCar" data-id="${esc(c.id)}">Enregistrer</button></div>`, "Offre de voiture");
-  }
-
-  /* ================= Réglages à coller ================= */
-  // Une ligne par réglage :
-  //   budget <catégorie> <montant>        epargne <montant>
-  //   prevu rentree|depense <AAAA-MM> <montant> <libellé>
-  //   regle "<libellé du relevé>" <catégorie>
-  //   categorie <id> enveloppe|fixe|revenu <montant> "<nom>" "<mot, mot>"
-  let codePlan = null;
-  function codeTokens(line) { const out = []; const re = /"([^"]*)"|(\S+)/g; let m; while ((m = re.exec(line))) out.push(m[1] !== undefined ? m[1] : m[2]); return out; }
-  function catByRef(ref, pending) {
-    const r = norm(ref);
-    return state.categories.find((c) => norm(c.id) === r || norm(c.name) === r) || (pending || []).find((c) => norm(c.id) === r || norm(c.name) === r) || null;
-  }
-  function moveKw(kw, target) {
-    for (const c of state.categories) c.kw = (c.kw || []).filter((k) => norm(k) !== norm(kw));
-    if (!target.kw.some((k) => norm(k) === norm(kw))) target.kw.push(kw);
-  }
-  function parseCode(text) {
-    const items = [], errors = [], pending = [];
-    for (const raw of String(text || "").split(/\r?\n/)) {
-      const line = raw.trim();
-      if (!line || line.startsWith("#")) continue;
-      const tk = codeTokens(line), cmd = norm(tk[0] || "");
-      const bad = (why) => errors.push(`« ${line} » : ${why}`);
-      if (cmd === "budget") {
-        const c = catByRef(tk[1], pending), v = parseAmount(tk[2] || "");
-        if (!c) { bad("catégorie inconnue"); continue; }
-        if (!isFinite(v) || v < 0) { bad("montant illisible"); continue; }
-        if (Math.abs((c.budget || 0) - v) < 0.005) { items.push({ text: `${esc(c.name)} : déjà à ${eur(v)}`, skip: true }); continue; }
-        items.push({ text: `${esc(c.name)} : ${eur(c.budget || 0)} → <b>${eur(v)}</b> par mois`, run: () => { const cc = cat(c.id); if (cc) cc.budget = round2(v); } });
-      } else if (cmd === "epargne") {
-        const v = parseAmount(tk[1] || "");
-        if (!isFinite(v) || v < 0) { bad("montant illisible"); continue; }
-        if (Math.abs((state.settings.goal || 0) - v) < 0.005) { items.push({ text: `Épargne : déjà à ${eur(v)}`, skip: true }); continue; }
-        items.push({ text: `Épargne chaque mois : ${eur(state.settings.goal || 0)} → <b>${eur(v)}</b>`, run: () => { state.settings.goal = round2(v); } });
-      } else if (cmd === "prevu") {
-        const type = norm(tk[1] || ""), ym = tk[2] || "", v = parseAmount(tk[3] || ""), label = tk.slice(4).join(" ").trim();
-        if (!["rentree", "depense"].includes(type)) { bad("indique rentree ou depense"); continue; }
-        if (!/^\d{4}-\d{2}$/.test(ym)) { bad("mois attendu au format 2026-12"); continue; }
-        if (!(v > 0) || !label) { bad("montant ou libellé manquant"); continue; }
-        const same = state.events.find((e) => e.ym === ym && norm(e.label) === norm(label));
-        if (same && Math.abs(same.amount - v) >= 0.01) { items.push({ text: `${esc(same.label)}, ${monthName(ym)} : ${eur(same.amount)} → <b>${eur(v)}</b>`, run: () => { same.amount = round2(v); same.type = type === "rentree" ? "in" : "out"; } }); continue; }
-        const exists = same || state.events.some((e) => e.ym === ym && Math.abs(e.amount - v) < 0.01 && e.type === (type === "rentree" ? "in" : "out"));
-        if (exists) { items.push({ text: `${esc(label)}, ${monthName(ym)} : déjà prévu`, skip: true }); continue; }
-        items.push({ text: `Prévu : ${type === "rentree" ? "rentrée" : "dépense"} « ${esc(label)} », ${monthName(ym)}, <b>${type === "rentree" ? "+" : "−"}${eur(v)}</b>`, run: () => state.events.push({ id: uid(), label, type: type === "rentree" ? "in" : "out", ym, amount: round2(v), done: false }) });
-      } else if (cmd === "objectif") {
-        const name = (tk[1] || "").trim(), v = parseAmount(tk[2] || ""), have = tk[3] ? parseAmount(tk[3]) : 0;
-        if (!name || !(v > 0) || !isFinite(have)) { bad("forme attendue : objectif \"Nom\" montant [déjà de côté]"); continue; }
-        if (state.goals.some((g) => norm(g.name) === norm(name))) { items.push({ text: `Projet « ${esc(name)} » : existe déjà`, skip: true }); continue; }
-        items.push({ text: `Projet d'épargne <b>${esc(name)}</b> : ${eur0(v)}${have ? `, ${eur0(have)} déjà de côté` : ""}, rempli dans l'ordre`, run: () => { if (!state.settings.queueStart) state.settings.queueStart = todayISO(); state.goals.push({ id: uid(), name, target: round2(v), saved: round2(have || 0), date: "", queue: true }); } });
-      } else if (cmd === "mots") {
-        const c = catByRef(tk[1], pending), kws = String(tk[2] || "").split(",").map((x) => x.trim()).filter(Boolean);
-        if (!c || !kws.length) { bad("forme attendue : mots catégorie \"mot, mot\""); continue; }
-        const fresh = kws.filter((k) => !(c.kw || []).some((x) => norm(x) === norm(k)));
-        if (!fresh.length) { items.push({ text: `${esc(c.name)} : reconnaît déjà ${kws.map(esc).join(", ")}`, skip: true }); continue; }
-        const n = state.tx.filter((t) => classify(t) === null && fresh.some((k) => norm(t.label).includes(norm(k)))).length;
-        items.push({ text: `<b>${esc(c.name)}</b> reconnaît aussi ${fresh.map(esc).join(", ")}${n ? ` (${n} opération${n > 1 ? "s" : ""} de « Autre » rangée${n > 1 ? "s" : ""})` : ""}`, run: () => { const cc = cat(c.id) || state.categories.find((x) => x.id === c.id); if (cc) for (const k of fresh) moveKw(k, cc); } });
-      } else if (cmd === "nom") {
-        const c = catByRef(tk[1], pending), name = (tk[2] || "").trim();
-        if (!c || !name) { bad("forme attendue : nom catégorie \"Nouveau nom\""); continue; }
-        if (c.name === name) { items.push({ text: `${esc(name)} : déjà ce nom`, skip: true }); continue; }
-        items.push({ text: `« ${esc(c.name)} » s'appelle maintenant <b>${esc(name)}</b>`, run: () => { const cc = cat(c.id); if (cc) cc.name = name; } });
-      } else if (cmd === "renomme-prevu") {
-        const from = (tk[1] || "").trim(), to = (tk[2] || "").trim();
-        const ev = state.events.find((e) => norm(e.label) === norm(from));
-        if (!from || !to) { bad("forme attendue : renomme-prevu \"ancien\" \"nouveau\""); continue; }
-        if (!ev) { items.push({ text: `« ${esc(from)} » : pas dans tes prévisions`, skip: true }); continue; }
-        items.push({ text: `Prévision « ${esc(from)} » renommée <b>${esc(to)}</b>`, run: () => { const e = state.events.find((x) => norm(x.label) === norm(from)); if (e) e.label = to; } });
-      } else if (cmd === "offre") {
-        const name = (tk[1] || "").trim(), rent = parseAmount(tk[2] || ""), dep = parseAmount(tk[3] || "0"), months = parseInt(tk[4] || "0", 10), ins = tk[5] ? parseAmount(tk[5]) : 0;
-        if (!name || !(rent > 0) || !isFinite(dep) || !isFinite(ins)) { bad("forme attendue : offre \"Nom\" loyer apport durée [assurance]"); continue; }
-        if (state.cars.some((c) => norm(c.name) === norm(name))) { items.push({ text: `Offre « ${esc(name)} » : existe déjà`, skip: true }); continue; }
-        items.push({ text: `Offre <b>${esc(name)}</b> : ${eur0(rent)} par mois, apport ${eur0(dep)}${months > 0 ? `, ${months} mois` : ""}${ins ? `, assurance ${eur0(ins)}` : ""}`, run: () => state.cars.push({ id: uid(), name, rent: round2(rent), deposit: round2(dep), months: months > 0 ? months : 0, km: 0, ins: round2(ins), fuel: "" }) });
-      } else if (cmd === "vente-voiture") {
-        const v = parseAmount(tk[1] || "");
-        if (!(v >= 0)) { bad("montant illisible"); continue; }
-        items.push({ text: `Vente de ta voiture actuelle : <b>${eur0(v)}</b>`, run: () => { state.settings.carSale = round2(v); } });
-      } else if (cmd === "financement") {
-        const ym = tk[1] || "";
-        if (!/^\d{4}-\d{2}$/.test(ym)) { bad("mois attendu au format 2026-12"); continue; }
-        items.push({ text: `Financement possible à partir de <b>${monthName(ym)}</b>`, run: () => { state.settings.financeFrom = ym; } });
-      } else if (cmd === "regle") {
-        const kw = (tk[1] || "").trim(), c = catByRef(tk[2], pending);
-        if (!kw) { bad("libellé manquant"); continue; }
-        if (!c) { bad("catégorie inconnue"); continue; }
-        const n = state.tx.filter((t) => norm(t.label).includes(norm(kw))).length;
-        items.push({ text: `« ${esc(kw)} » rangé dans <b>${esc(c.name)}</b>${n ? ` (${n} opération${n > 1 ? "s" : ""} déjà là)` : ""}`, run: () => { const cc = cat(c.id); if (cc) moveKw(kw, cc); } });
-      } else if (cmd === "categorie") {
-        const id = norm(tk[1] || "").replace(/\s+/g, "-"), kind = norm(tk[2] || ""), v = parseAmount(tk[3] || "0"), name = (tk[4] || "").trim(), kws = String(tk[5] || "").split(",").map((x) => x.trim()).filter(Boolean);
-        if (!id || !["enveloppe", "fixe", "revenu"].includes(kind) || !name || !isFinite(v)) { bad("forme attendue : categorie id enveloppe 0 \"Nom\" \"mot, mot\""); continue; }
-        if (cat(id)) { items.push({ text: `Catégorie « ${esc(cat(id).name)} » : existe déjà`, skip: true }); continue; }
-        pending.push({ id, name, kind, kw: [] });
-        items.push({ text: `Nouvelle catégorie <b>${esc(name)}</b> (${KIND_L[kind].toLowerCase()}, ${eur(v)} par mois)${kws.length ? `, reconnue par ${kws.map(esc).join(", ")}` : ""}`, run: () => { const c = { id, name, kind, budget: round2(v), kw: [], active: true }; state.categories.push(c); for (const k of kws) moveKw(k, c); } });
-      } else bad("ligne non reconnue");
-    }
-    return { items, errors };
-  }
-  function codeSheet() {
-    openSheet(`<h2>Appliquer des réglages</h2><p class="hint">Colle le texte préparé. Tu vois chaque changement avant de l'appliquer.</p>
-      <div class="field"><label for="codeText">Réglages</label><textarea id="codeText" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="budget nourriture 300"></textarea><p class="err" id="codeErr" hidden></p></div>
-      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="codePreview">Voir les changements</button></div>`, "Appliquer des réglages");
-  }
-  let codePack = null;
-  function codePreview(text, opts = {}) {
-    codePack = opts.pack || null;
-    const r = parseCode(text);
-    if (!r.items.length && !r.errors.length) { showErr("codeErr", "Colle d'abord le texte des réglages."); return; }
-    codePlan = r.items;
-    const live = r.items.filter((i) => !i.skip);
-    openSheet(`<h2>${opts.title || `${live.length} changement${live.length > 1 ? "s" : ""}`}</h2>${opts.intro ? `<p class="meta">${opts.intro}</p>` : ""}
-      <div class="rows codelist">${r.items.map((it, i) => it.skip ? `<p class="hint">${it.text}</p>` : `<label class="check"><input type="checkbox" data-code="${i}" checked><span>${it.text}</span></label>`).join("")}</div>
-      ${r.errors.length ? `<div class="callout warn" style="cursor:default"><span><b>Lignes ignorées</b><br>${r.errors.map(esc).join("<br>")}</span></div>` : ""}
-      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="codeRun" ${live.length ? "" : "disabled"}>Appliquer</button></div>`, "Changements");
-  }
-  function codeRun() {
-    if (!codePlan) return;
-    const keep = new Set([...sheetHost.querySelectorAll("input[data-code]")].filter((x) => x.checked).map((x) => Number(x.dataset.code)));
-    const backup = JSON.stringify(state);
-    let n = 0;
-    // Les nouvelles catégories d'abord, pour que les budgets et règles qui les visent s'appliquent
-    const order = codePlan.map((it, i) => ({ it, i })).filter(({ it, i }) => !it.skip && keep.has(i)).sort((a, b) => (/Nouvelle catégorie/.test(b.it.text) ? 1 : 0) - (/Nouvelle catégorie/.test(a.it.text) ? 1 : 0));
-    for (const { it } of order) { it.run(); n++; }
-    if (codePack) { state.settings.packs = (state.settings.packs || []).concat(codePack); codePack = null; }
-    codePlan = null; save(); closeSheet(); shownFree = null; render(); haptic();
-    toast(`${n} réglage${n > 1 ? "s" : ""} appliqué${n > 1 ? "s" : ""}`, () => { state = migrate(JSON.parse(backup)); save(); shownFree = null; render(); toast("Réglages annulés"); });
+    const g = id ? state.goals.find((x) => x.id === id) : { id: "", name: "Matelas de sécurité", target: 0, saved: 0 };
+    if (!g) return;
+    const cu = id ? cushion() : null;
+    const pend = savingsPending();
+    openSheet(`<h2>${id ? esc(g.name) : "Ton matelas de sécurité"}</h2>
+      ${cu ? `<p class="meta">${eur0(cu.have)} sur ${eur0(g.target)}, ${etaText(cu)}</p>` : ""}
+      <div class="field"><label for="gName">Nom</label><input type="text" id="gName" value="${esc(g.name)}" autocomplete="off"></div>
+      <div class="grid2"><div class="field"><label for="gTarget">Montant visé</label>${moneyInput("gTarget", g.target, "Montant visé")}</div>
+        <div class="field"><label for="gSaved">Déjà de côté</label>${moneyInput("gSaved", g.saved, "Déjà de côté")}</div></div>
+      <p class="hint">Ensuite, il se remplit tout seul : à la fin de chaque mois, ce que tu n'as pas dépensé s'ajoute, dès que le relevé du mois est importé.${pend ? ` En attente : le relevé complet de ${monthName(pend)}.` : ""}</p>
+      <p class="err" id="gErr" hidden></p>
+      ${id ? `<button class="btn danger" data-act="delGoal" data-id="${esc(g.id)}">Supprimer</button>` : ""}
+      <div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Annuler</button><button class="btn primary" data-act="saveGoal" data-id="${esc(g.id)}">Enregistrer</button></div>`, "Matelas");
   }
 
   /* ================= Sauvegarde ================= */
   const backupPayload = () => JSON.stringify({ app: APP_ID, version: 2, exportedAt: new Date().toISOString(), state }, null, 1);
   function wipeAll(msg) {
     try { localStorage.removeItem(KEY); } catch (err) {}
-    state = null; onb = { step: 1, vals: {} }; shownFree = null; catView = null; budgetYM = ymNow(); viewYM = ymNow();
+    state = null; shownFree = null; backTo = {}; catView = null; budgetYM = ymNow(); viewYM = ymNow();
     sheetHost.innerHTML = ""; document.documentElement.classList.remove("sheet-open");
-    view = "aujourdhui"; render(); window.scrollTo(0, 0);
+    view = "budget"; render(); window.scrollTo(0, 0);
     if (msg) toast(msg);
   }
   async function doBackup(after) {
@@ -2500,19 +2198,30 @@ details.tri-more > .picks2 { margin-top: 8px; }
     try { obj = JSON.parse(text); } catch (e) { return "Ce texte n'est pas une sauvegarde lisible. Vérifie que tout le contenu a été copié."; }
     const s = obj && obj.app === APP_ID ? obj.state : obj;
     if (!validState(s)) return "Ce fichier n'est pas une sauvegarde de Fin de mois.";
-    state = migrate(s); save(); closeSheet(); shownFree = null; go("aujourdhui"); toast(`Sauvegarde restaurée : ${state.tx.length} opérations`);
+    state = migrate(s); migrate8(); save(); closeSheet(); shownFree = null; go("budget"); toast(`Sauvegarde restaurée : ${state.tx.length} opérations`);
     return null;
   }
 
   /* ================= Rendu ================= */
-  const depth = (v) => (parentOf(v) ? 1 + depth(parentOf(v)) : 0);
+  // Les données d'avant : les offres de voiture deviennent des comparaisons ; plus d'estimation cachée dans le calcul
+  function migrate8() {
+    if (!state) return;
+    if (!Array.isArray(state.scenarios)) {
+      const ess = cat("essence");
+      state.scenarios = (state.cars || []).map((c) => ({ id: c.id, name: c.name, monthly: round2((c.rent || 0) + (c.ins || 0) + (c.fuel !== undefined && c.fuel !== "" && c.fuel !== null && ess ? c.fuel - ess.budget : 0)), once: round2(c.deposit || 0), gain: round2(state.settings.carSale || 0) }));
+    }
+    state.settings.estimate = false;
+  }
   function go(v, dir) {
     v = ALIAS[v] || v;
-    if (!VIEWS.includes(v)) v = "aujourdhui";
+    if (!VIEWS.includes(v)) v = "mois";
     const from = view;
-    document.documentElement.dataset.nav = dir || (depth(v) > depth(from) ? "forward" : depth(v) < depth(from) ? "back" : "tab");
+    if (TABS.includes(v)) backTo = {};
+    else if (dir !== "back" && v !== from) { let loop = false; for (let i = 0, x = from; i < 6 && x; i++, x = parentOf(x)) if (x === v) loop = true; if (!loop) backTo[v] = from; }
+    document.documentElement.dataset.nav = dir || (TABS.includes(v) && TABS.includes(from) ? "tab" : depth(v) > depth(from) ? "forward" : depth(v) < depth(from) ? "back" : "tab");
     const run = () => {
       view = v;
+      if (state && TABS.includes(v) && state.settings.lastTab !== v) { state.settings.lastTab = v; save(); }
       if (location.hash !== "#" + v) { try { window.history.replaceState(null, "", "#" + v); } catch (e) {} }
       render(); window.scrollTo(0, 0);
     };
@@ -2520,12 +2229,13 @@ details.tri-more > .picks2 { margin-top: 8px; }
   }
   function render() {
     view = ALIAS[view] || view;
-    if (!VIEWS.includes(view)) view = "aujourdhui";
+    if (!VIEWS.includes(view)) view = "mois";
+    if (heroObs && view !== "budget") { heroObs.disconnect(); heroObs = null; }
     if (!state) { tabs.hidden = true; renderOnboarding(); return; }
     tabs.hidden = false;
-    const tab = view === "operations" ? TAB_OF[opsBack] : TAB_OF[view] || "aujourdhui";
-    for (const a of tabs.querySelectorAll("a")) { if (a.dataset.tab === tab && ["aujourdhui", "budget", "operations", "epargne", "categorie"].includes(view)) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); }
-    ({ aujourdhui: renderAujourdhui, budget: renderBudget, operations: renderOperations, epargne: renderProjets, categorie: renderCategorie, reglages: renderReglages, iphone: renderIphone, sauvegarde: renderSauvegarde }[view])();
+    const tab = tabOf(view);
+    for (const a of tabs.querySelectorAll("a")) { if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); }
+    ({ budget: renderPlan, etsi: renderEtsi, mois: renderMois, operations: renderOperations, categorie: renderCategorie, reglages: renderReglages, sauvegarde: renderSauvegarde }[view])();
     const nv = document.getElementById("nav"); if (nv) nv.classList.toggle("scrolled", window.scrollY > 38);
   }
   const val = (id) => { const e = document.getElementById(id); return e ? e.value : ""; };
@@ -2542,50 +2252,58 @@ details.tri-more > .picks2 { margin-top: 8px; }
       case "closeSheet": closeSheet(); break;
       case "how": howSheet(); break;
       case "key": padKey(el.dataset.v); break;
-      case "markPaid": markPaid(el.dataset.id); if (sheetHost.innerHTML) closeSheet(); break;
       case "addOpen": addSheet(el.dataset.cat); break;
       case "addSave": addSave(); break;
-      case "pickCat": { padCat = el.dataset.v; haptic(); for (const b of sheetHost.querySelectorAll('[data-act="pickCat"]')) b.setAttribute("aria-pressed", String(b === el)); const er = document.getElementById("addErr"); if (er) er.hidden = true; updateAdd(); break; }
-      case "pickMore": { const m = document.getElementById("pickMore"); if (m) { m.hidden = !m.hidden; el.setAttribute("aria-expanded", String(!m.hidden)); } break; }
-      case "addWhen": { padDate = el.dataset.v || null; haptic(); setWhen(); updateAdd(); break; }
-      case "unmarkPaid": unmarkPaid(el.dataset.id); break;
-      case "opsAll": opsBack = el.dataset.from === "aujourdhui" ? "aujourdhui" : "budget"; opsOnly = false; opsQuery = ""; viewYM = opsBack === "budget" ? budgetYM : ymNow(); go("operations"); break;
-      case "opsAutre": opsBack = "budget"; opsOnly = true; opsQuery = ""; triSkip = new Set(); viewYM = budgetYM; go("operations"); break;
-      case "addCatAsk": openSheet(`<h2>Ajouter une catégorie</h2><div class="rows">
-        <button class="row" data-act="addCat" data-kind="enveloppe"><span class="name">Une dépense du quotidien</span>${ICON.chev}<span class="sub">Avec un budget par mois : coiffeur, cadeaux, animaux</span></button>
-        <button class="row" data-act="addCat" data-kind="fixe"><span class="name">Une facture</span>${ICON.chev}<span class="sub">Même montant chaque mois : forfait, assurance, crédit</span></button>
-        <button class="row" data-act="addCat" data-kind="revenu"><span class="name">Un revenu</span>${ICON.chev}<span class="sub">Ce qui rentre chaque mois</span></button></div>`, "Ajouter une catégorie"); break;
-      case "prev": viewYM = ymShift(viewYM, -1); render(); break;
-      case "next": viewYM = ymShift(viewYM, 1); render(); break;
-      case "opsOnly": opsOnly = el.dataset.v === "1"; renderOperations(); break;
-      case "chartSel": chartSel[el.dataset.chart] = Number(el.dataset.i); render(); break;
-      case "bprev": budgetYM = ymShift(budgetYM, -1); render(); break;
-      case "bnext": if (budgetYM < ymNow()) { budgetYM = ymShift(budgetYM, 1); render(); } break;
-      case "openCat": catView = el.dataset.id; go("categorie"); break;
-      case "resetAsk": openSheet(`<h2>Repartir à zéro</h2><p class="hint">Tout ce qui est dans l'appli sera effacé de cet iPhone : budgets, opérations, projets. Une sauvegarde est créée juste avant : tu pourras revenir en arrière.</p>
-        <button class="btn danger" data-act="resetGo">Sauvegarder, puis tout effacer</button><button class="btn link" data-act="resetNoBackup">Effacer sans sauvegarde</button>`, "Repartir à zéro"); break;
-      case "resetGo": doBackup(() => wipeAll("Tout est effacé. Ta sauvegarde est dans Fichiers.")); break;
-      case "resetNoBackup": confirmSheet("Effacer sans sauvegarde ?", "Rien ne pourra être récupéré.", "Tout effacer", "wipeOk"); break;
-      case "onbCode": openSheet(`<h2>Créer mon budget avec un texte</h2><p class="hint">Colle le texte de réglages préparé. L'appli crée tes catégories, tes budgets et tes projets d'un coup.</p>
-        <div class="field"><label for="onbCodeText">Réglages</label><textarea id="onbCodeText" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea><p class="err" id="onbCodeErr" hidden></p></div>
-        <div class="sheet-foot"><button class="btn primary" data-act="onbCodeGo">Créer mon budget</button></div>`, "Créer mon budget"); break;
-      case "onbCodeGo": {
-        const text = val("onbCodeText").trim();
-        if (!text) { showErr("onbCodeErr", "Colle d'abord le texte de réglages."); break; }
-        state = migrate({ v: 2, categories: defaultCategories(), tx: [], settings: { goal: 0, estimate: false, lastBackup: null, createdAt: new Date().toISOString() } });
-        const r = parseCode(text);
-        const live = r.items.filter((it) => !it.skip).sort((a, b) => (/Nouvelle catégorie/.test(b.text) ? 1 : 0) - (/Nouvelle catégorie/.test(a.text) ? 1 : 0));
-        if (!live.length) { state = null; showErr("onbCodeErr", "Aucun réglage reconnu dans ce texte."); break; }
-        for (const it of live) it.run();
-        save(); closeSheet(); shownFree = null; haptic(); go("reglages");
-        toast(`Budget créé : ${live.length} réglages. Importe maintenant ton relevé.`); break;
+      case "etsiOpen": etsiSheet(); break;
+      case "etsiMode": { etsi.mode = el.dataset.v; haptic(); for (const b of el.parentElement.children) b.setAttribute("aria-pressed", String(b === el)); updateEtsi(); break; }
+      case "etsiCat": { const on = el.getAttribute("aria-pressed") !== "true"; etsi.cat = on ? el.dataset.v : null; haptic(); for (const b of sheetHost.querySelectorAll('[data-act="etsiCat"]')) b.setAttribute("aria-pressed", String(on && b === el)); updateEtsi(); break; }
+      case "etsiKeep": {
+        const a = parseAmount(typed || "0");
+        if (!(a > 0)) { shake(document.getElementById("padAmt")); break; }
+        const c = etsi.mode === "once" && etsi.cat ? cat(etsi.cat) : null;
+        const s = { id: uid(), name: etsi.mode === "month" ? `${eur0(a)} de plus chaque mois` : c ? `${shortName(c)} : ${eur0(a)}` : `Dépense de ${eur0(a)}`, monthly: etsi.mode === "month" ? round2(a) : 0, once: etsi.mode === "once" ? round2(a) : 0, gain: 0 };
+        if (c) s.catId = c.id;
+        state.scenarios.push(s); save(); closeSheet(); haptic();
+        if (view !== "etsi") go("etsi"); else render();
+        toast("Gardé dans tes comparaisons. Touche-la pour la renommer"); break;
       }
-      case "importCsv": csvInput.value = ""; csvInput.click(); break;
-      case "importJournal": journalInput.value = ""; journalInput.click(); break;
-      case "triPick": triPick(el.dataset.k, el.dataset.v); break;
-      case "triSkip": triSkip.add(el.dataset.k); renderOperations(); break;
-      case "triReset": triSkip = new Set(); renderOperations(); break;
-      case "openTx": txSheet(el.dataset.id); break;
+      case "editScen": scenSheet(el.dataset.id); break;
+      case "saveScen": {
+        const name = val("sName").trim();
+        const num = (id) => { const r = val(id).trim(); return r ? parseAmount(r) : 0; };
+        const mo = num("sMonthly"), on = num("sOnce"), ga = num("sGain");
+        if (!name) { showErr("sErr", "Donne un nom, par exemple « Peugeot 308 »."); break; }
+        if (![mo, on, ga].every((x) => isFinite(x) && x >= 0)) { showErr("sErr", "Un montant est illisible, par exemple 310 ou 12,50."); break; }
+        if (!(mo || on || ga)) { showErr("sErr", "Indique au moins un montant."); break; }
+        const data = { name, monthly: round2(mo), once: round2(on), gain: round2(ga) };
+        if (el.dataset.id) Object.assign(state.scenarios.find((x) => x.id === el.dataset.id), data); else state.scenarios.push({ id: uid(), ...data });
+        save(); closeSheet(); render(); haptic(); toast("Enregistré"); break;
+      }
+      case "delScen": state.scenarios = state.scenarios.filter((x) => x.id !== el.dataset.id); save(); closeSheet(); render(); toast("Comparaison supprimée"); break;
+      case "planAdd": planAddSheet(el.dataset.kind); break;
+      case "planAddSave": {
+        const name = val("pnName").trim(), raw = val("pnAmt").trim(), v = raw ? parseAmount(raw) : 0;
+        if (!name) { showErr("pnErr", "Donne un nom à la ligne."); break; }
+        if (!isFinite(v) || v < 0) { showErr("pnErr", "Montant illisible, par exemple 25 ou 12,50."); break; }
+        state.categories.push({ id: "c" + uid(), name, kind: el.dataset.kind, budget: round2(v), kw: [], active: true });
+        save(); closeSheet(); render(); haptic(); toast(`${name} ajouté`); break;
+      }
+      case "openCat": catView = el.dataset.id; budgetYM = ymNow(); go("categorie"); break;
+      case "opsAll": opsOnly = false; opsQuery = ""; viewYM = ymNow(); go("operations"); break;
+      case "opsAutre": opsOnly = true; opsQuery = ""; triSkip = new Set(); viewYM = ymNow(); go("operations"); break;
+      case "opsMonth": opsOnly = false; opsQuery = ""; viewYM = el.dataset.ym || ymNow(); go("operations"); break;
+      case "editGoal": goalSheet(el.dataset.id); break;
+      case "saveGoal": {
+        const name = val("gName").trim(), target = parseAmount(val("gTarget")), sr = val("gSaved").trim(), saved = sr ? parseAmount(sr) : 0;
+        if (!name) { showErr("gErr", "Donne un nom, par exemple « Matelas de sécurité »."); break; }
+        if (!(target > 0)) { showErr("gErr", "Indique le montant visé, par exemple 5900."); break; }
+        if (!isFinite(saved) || saved < 0) { showErr("gErr", "Le montant déjà de côté est illisible."); break; }
+        const data = { name, target: round2(target), saved: round2(saved), date: "", queue: true };
+        if (!state.settings.queueStart) state.settings.queueStart = todayISO();
+        if (el.dataset.id) Object.assign(state.goals.find((x) => x.id === el.dataset.id), data); else state.goals.unshift({ id: uid(), ...data });
+        save(); closeSheet(); render(); haptic(); toast("Enregistré"); break;
+      }
+      case "delGoal": state.goals = state.goals.filter((x) => x.id !== el.dataset.id); save(); closeSheet(); render(); toast("Supprimé"); break;
       case "saveTx": {
         const t = state.tx.find((x) => x.id === el.dataset.id);
         if (!t) { closeSheet(); break; }
@@ -2617,12 +2335,6 @@ details.tri-more > .picks2 { margin-top: 8px; }
         const removed = state.tx.filter((x) => x.id === el.dataset.id || x.cashOffset === el.dataset.id); state.tx = state.tx.filter((x) => !removed.includes(x)); save(); closeSheet(); render();
         toast("Opération supprimée", () => { if (removed.length) { state.tx.push(...removed); sortTx(); save(); render(); } }); break;
       }
-      case "buyAdd": {
-        const a = parseAmount(buy.amount);
-        if (!(a > 0)) break;
-        state.events.push({ id: uid(), label: "Achat prévu", type: "out", ym: buy.ym, amount: round2(a), done: false });
-        save(); buy.amount = ""; renderProjets(); toast(`Ajouté aux prévisions de ${monthName(state.events[state.events.length - 1].ym)}`); break;
-      }
       case "editEvent": eventSheet(el.dataset.id); break;
       case "evType": document.getElementById("evTypeVal").value = el.dataset.v; for (const b of el.parentElement.children) b.setAttribute("aria-pressed", String(b === el)); break;
       case "saveEvent": {
@@ -2635,80 +2347,36 @@ details.tri-more > .picks2 { margin-top: 8px; }
         save(); closeSheet(); render(); toast("Enregistré"); break;
       }
       case "delEvent": state.events = state.events.filter((x) => x.id !== el.dataset.id); save(); closeSheet(); render(); toast("Supprimé"); break;
-      case "editGoal": goalSheet(el.dataset.id); break;
-      case "saveGoal": {
-        const name = val("gName").trim(), target = parseAmount(val("gTarget")), sr = val("gSaved").trim(), saved = sr ? parseAmount(sr) : 0, ym = val("gDate");
-        if (!name) { showErr("gErr", "Donne un nom au projet."); break; }
-        if (!(target > 0)) { showErr("gErr", "Indique le montant visé, par exemple 1500."); break; }
-        if (!isFinite(saved) || saved < 0) { showErr("gErr", "Le montant déjà de côté est illisible."); break; }
-        if (ym && !/^\d{4}-\d{2}$/.test(ym)) { showErr("gErr", "Choisis le mois, ou laisse vide."); break; }
-        const data = { name, target: round2(target), saved: round2(saved), date: ym ? `${ym}-01` : "", queue: !ym };
-        if (data.queue && !state.settings.queueStart) state.settings.queueStart = todayISO();
-        if (el.dataset.id) Object.assign(state.goals.find((x) => x.id === el.dataset.id), data); else state.goals.push({ id: uid(), ...data });
-        save(); closeSheet(); shownFree = null; render(); haptic(); toast("Projet enregistré"); break;
-      }
-      case "goalAdd": {
-        const g = state.goals.find((x) => x.id === el.dataset.id), a = parseAmount(val("gAdd"));
-        if (!g || !(a > 0)) { showErr("gErr", "Indique le montant ajouté, par exemple 500."); break; }
-        g.saved = round2((g.saved || 0) + a); save(); closeSheet(); render(); haptic();
-        toast(`${eur0(a)} ajoutés à ${g.name}`, () => { g.saved = round2(g.saved - a); save(); render(); toast("Ajout annulé"); }); break;
-      }
-      case "goalFirst": {
-        const g = state.goals.find((x) => x.id === el.dataset.id);
-        if (g) { state.goals = [g].concat(state.goals.filter((x) => x !== g)); save(); closeSheet(); render(); toast(`${g.name} passe en premier`); }
-        break;
-      }
-      case "delGoal": state.goals = state.goals.filter((x) => x.id !== el.dataset.id); save(); closeSheet(); render(); toast("Projet supprimé"); break;
-      case "editCar": carSheet(el.dataset.id); break;
-      case "saveCar": {
-        const name = val("cName").trim(), rent = parseAmount(val("cRent")), dr = val("cDep").trim(), dep = dr ? parseAmount(dr) : 0, months = parseInt(val("cMonths"), 10), km = parseInt(String(val("cKm")).replace(/\s/g, ""), 10);
-        if (!name) { showErr("cErr", "Donne le nom de la voiture."); break; }
-        if (!(rent > 0)) { showErr("cErr", "Indique le loyer par mois, par exemple 320."); break; }
-        if (!isFinite(dep) || dep < 0) { showErr("cErr", "L'apport est illisible."); break; }
-        const ir = val("cIns").trim(), ins = ir ? parseAmount(ir) : 0, fr = val("cFuel").trim(), fuel = fr ? parseAmount(fr) : "";
-        if (!isFinite(ins) || ins < 0) { showErr("cErr", "L'assurance est illisible."); break; }
-        if (fr && (!isFinite(fuel) || fuel < 0)) { showErr("cErr", "L'essence est illisible."); break; }
-        const data = { name, rent: round2(rent), deposit: round2(dep), months: months > 0 ? months : 0, km: km > 0 ? km : 0, ins: round2(ins), fuel: fr ? round2(fuel) : "" };
-        if (el.dataset.id) Object.assign(state.cars.find((x) => x.id === el.dataset.id), data); else state.cars.push({ id: uid(), ...data });
-        save(); closeSheet(); render(); toast("Offre enregistrée"); break;
-      }
-      case "useCar": { const c = state.cars.find((x) => x.id === el.dataset.id), v = cat("voiture"); if (c && v) { v.budget = c.rent; save(); closeSheet(); render(); toast(`Voiture du budget : ${eur0(c.rent)} par mois, comptée quand tu l'activeras`); } break; }
-      case "delCar": state.cars = state.cars.filter((x) => x.id !== el.dataset.id); if (projCar === "car:" + el.dataset.id) projCar = ""; save(); closeSheet(); render(); toast("Offre supprimée"); break;
-      case "applySugg": { const c = cat(el.dataset.id); c.budget = Number(el.dataset.v); save(); shownFree = null; render(); toast(`${c.name} : ${eur0(c.budget)} par mois`); break; }
-      case "ignoreSugg": state.settings.ignoredSugg.push(el.dataset.k); save(); render(); break;
-      case "makeFixed": {
-        const x = recurring().find((r) => r.key === el.dataset.k);
-        if (!x) break;
-        for (const o of state.categories) o.kw = (o.kw || []).filter((k) => norm(k) !== norm(x.label));
-        state.categories.push({ id: "c" + uid(), name: x.label, kind: "fixe", budget: x.avg, kw: [x.label], active: true });
-        save(); render(); toast(`${x.label} ajouté aux factures`); break;
-      }
-      case "addCat": {
-        if (sheetHost.innerHTML) { sheetHost.innerHTML = ""; document.documentElement.classList.remove("sheet-open"); }
-        const kind = el.dataset.kind;
-        const c = { id: "c" + uid(), name: kind === "revenu" ? "Nouveau revenu" : kind === "fixe" ? "Nouvelle facture" : "Nouvelle dépense", kind, budget: 0, kw: [], active: true, fam: kind === "enveloppe" ? "plaisir" : undefined };
-        state.categories.push(c); save(); catView = c.id; go("categorie");
-        setTimeout(() => { const n = app.querySelector('[data-edit="name"]'); if (n) { n.focus(); n.select(); } }, 450);
-        break;
-      }
+      case "resetAsk": openSheet(`<h2>Repartir à zéro</h2><p class="hint">Tout ce qui est dans l'appli sera effacé de cet iPhone : budget, dépenses, comparaisons. Une sauvegarde est créée juste avant : tu pourras revenir en arrière.</p>
+        <button class="btn danger" data-act="resetGo">Sauvegarder, puis tout effacer</button><button class="btn link" data-act="resetNoBackup">Effacer sans sauvegarde</button>`, "Repartir à zéro"); break;
+      case "resetGo": doBackup(() => wipeAll("Tout est effacé. Ta sauvegarde est dans Fichiers.")); break;
+      case "resetNoBackup": confirmSheet("Effacer sans sauvegarde ?", "Rien ne pourra être récupéré.", "Tout effacer", "wipeOk"); break;
+      case "triPick": triPick(el.dataset.k, el.dataset.v); break;
+      case "triSkip": triSkip.add(el.dataset.k); renderOperations(); break;
+      case "triReset": triSkip = new Set(); renderOperations(); break;
+      case "openTx": txSheet(el.dataset.id); break;
       case "delCat": { const c = cat(el.dataset.id); const used = state.tx.filter((t) => classify(t) === c.id).length; confirmSheet(`Supprimer « ${c.name} » ?`, used ? `${used} opération(s) rangées ici repasseront dans « Autre ».` : "Aucune opération n'est rangée ici.", "Supprimer", "delCatOk", `data-id="${esc(c.id)}"`); break; }
       case "delCatOk": { const id = el.dataset.id; for (const t of state.tx) if (t.manualCat === id) delete t.manualCat; state.categories = state.categories.filter((c) => c.id !== id); save(); closeSheet(); go("budget", "back"); toast("Catégorie supprimée"); break; }
       case "backup": doBackup(); break;
       case "copyBackup": { const ta = document.getElementById("bkText"); const done = () => { state.settings.lastBackup = new Date().toISOString(); save(); toast("Sauvegarde copiée"); }; const fb = () => { ta.focus(); ta.select(); toast("Sélectionne le texte puis copie-le"); }; try { navigator.clipboard.writeText(ta.value).then(done, fb); } catch (err) { fb(); } break; }
-      case "copy": { const node = document.getElementById(el.dataset.t); try { navigator.clipboard.writeText(node ? node.textContent : "").then(() => toast("Copié"), () => toast("Sélectionne le texte puis copie-le")); } catch (err) { toast("Sélectionne le texte puis copie-le"); } break; }
       case "restore": openRestore(); break;
-      case "codeOpen": codeSheet(); break;
-      case "codePreview": codePreview(val("codeText")); break;
-      case "codeRun": codeRun(); break;
       case "pickBackup": backupInput.value = ""; backupInput.click(); break;
       case "restorePasted": { const t = val("rsText").trim(); const msg = t ? applyBackup(t) : "Colle d'abord le contenu de la sauvegarde."; if (msg) showErr("rsErr", msg); break; }
       case "wipe": confirmSheet("Effacer toutes les données ?", "Ton budget et tes opérations seront supprimés de cet iPhone. Fais une sauvegarde avant si tu veux pouvoir les retrouver.", "Tout effacer", "wipeOk"); break;
       case "wipeOk": wipeAll("Tout est effacé."); break;
-      case "onbBack": onbCollect(); onb.step = Math.max(1, onb.step - 1); renderOnboarding(); window.scrollTo(0, 0); break;
+      case "markPaid": markPaid(el.dataset.id); if (sheetHost.innerHTML) closeSheet(); break;
+      case "unmarkPaid": unmarkPaid(el.dataset.id); break;
+      case "pickCat": { padCat = el.dataset.v; haptic(); for (const b of sheetHost.querySelectorAll('[data-act="pickCat"]')) b.setAttribute("aria-pressed", String(b === el)); const er = document.getElementById("addErr"); if (er) er.hidden = true; updateAdd(); break; }
+      case "pickMore": { const m = document.getElementById("pickMore"); if (m) { m.hidden = !m.hidden; el.setAttribute("aria-expanded", String(!m.hidden)); } break; }
+      case "addWhen": { padDate = el.dataset.v || null; haptic(); setWhen(); updateAdd(); break; }
+      case "prev": viewYM = ymShift(viewYM, -1); render(); break;
+      case "next": viewYM = ymShift(viewYM, 1); render(); break;
+      case "opsOnly": opsOnly = el.dataset.v === "1"; renderOperations(); break;
+      case "importCsv": csvInput.value = ""; csvInput.click(); break;
     }
   });
 
-  // Pavé : clavier physique aussi
+  // Clavier physique : la feuille d'ajout et « Et si » se remplissent au clavier
   document.addEventListener("keydown", (e) => {
     if (sheetHost.innerHTML) {
       if (e.key === "Escape") { closeSheet(); return; }
@@ -2717,7 +2385,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
         if (/^[0-9]$/.test(e.key)) { padKey(e.key); e.preventDefault(); return; }
         if (e.key === "," || e.key === ".") { padKey(","); e.preventDefault(); return; }
         if (e.key === "Backspace") { padKey("del"); e.preventDefault(); return; }
-        if (e.key === "Enter") { addSave(); e.preventDefault(); return; }
+        if (e.key === "Enter" && document.getElementById("addAfter")) { addSave(); e.preventDefault(); return; }
       }
       if (e.key === "Tab") {
         const f = [...sheetHost.querySelectorAll(".sheet button, .sheet input:not([type=hidden]), .sheet select, .sheet textarea, .sheet summary")].filter((x) => !x.disabled && x.offsetParent !== null);
@@ -2725,8 +2393,7 @@ details.tri-more > .picks2 { margin-top: 8px; }
       }
       return;
     }
-    if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches("rect.hit")) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); return; }
-    if (view !== "aujourdhui" || !state) return;
+    if (view !== "mois" || !state) return;
     const tag = (e.target.tagName || "").toLowerCase();
     if (tag === "input" || tag === "textarea" || tag === "select") return;
     if (/^[0-9]$/.test(e.key)) { e.preventDefault(); addSheet(); padKey(e.key); }
@@ -2782,25 +2449,33 @@ details.tri-more > .picks2 { margin-top: 8px; }
     sx = null;
   }, { passive: true });
 
+  // Une case du tableau sélectionne tout son contenu : on tape le nouveau montant directement
+  document.addEventListener("focusin", (e) => {
+    const t = e.target;
+    if (!(t.dataset && t.dataset.plan)) return;
+    const v0 = t.value;
+    try { t.select(); } catch (err) {}
+    setTimeout(() => { if (t.value === v0 && document.activeElement === t) { try { t.select(); } catch (err) {} } }, 0);
+  });
   document.addEventListener("input", (e) => {
     const t = e.target;
+    if (t.dataset && t.dataset.plan && state) {
+      const c = cat(t.dataset.plan), raw = t.value.trim(), v = raw ? parseAmount(raw) : 0;
+      if (c && isFinite(v) && v >= 0) { c.budget = round2(v); t.closest(".pamt").classList.remove("bad"); save(); updatePlanNumbers(); }
+      else t.closest(".pamt").classList.add("bad");
+      return;
+    }
     if (t.id === "opsQuery") { opsQuery = t.value; const box = document.getElementById("opsList"); if (box) box.innerHTML = opsList(computeMonth(viewYM, viewYM < ymNow() ? { raw: true } : {})); }
-    else if (t.id === "buyAmt") { buy.amount = t.value; updateBuy(); }
     else if (t.closest && t.closest(".money-in")) t.closest(".money-in").classList.remove("invalid");
     if (t.closest && t.closest(".sheet")) { const er = t.closest(".sheet").querySelector(".err"); if (er) er.hidden = true; }
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
-    if (t.id === "buyYm") { buy.ym = t.value; updateBuy(); return; }
-    if (t.id === "projCar") { projCar = t.value; renderProjets(); return; }
+    if (t.dataset && t.dataset.plan && state) { const c = cat(t.dataset.plan); if (c && !t.closest(".pamt").classList.contains("bad")) t.value = amountText(c.budget); return; }
     if (t.id === "addCash") { haptic(); updateAdd(); return; }
     if (t.id === "addDateIn") { if (t.value && t.value <= todayISO()) { padDate = t.value === todayISO() ? null : t.value; setWhen(); updateAdd(); } return; }
     if (t.id === "hapOn") { state.settings.haptics = t.checked; save(); haptic(); return; }
-    if (t.id === "estOn") { state.settings.estimate = t.checked; save(); toast(t.checked ? "Estimation activée" : "Estimation désactivée"); return; }
     if (t.id === "alertPct") { state.settings.alertPct = Number(t.value); save(); toast("Enregistré"); return; }
-    if (t.id === "carSale" && state) { const v = parseAmount(t.value || "0"); state.settings.carSale = isFinite(v) && v > 0 ? round2(v) : 0; save(); renderProjets(); toast("Enregistré"); return; }
-    if (t.id === "financeFrom" && state) { state.settings.financeFrom = t.value || ""; save(); renderProjets(); toast("Enregistré"); return; }
-    if (t.id === "goal" && state) { const v = parseAmount(t.value || "0"); state.settings.goal = isFinite(v) && v > 0 ? round2(v) : 0; save(); shownFree = null; renderProjets(); toast("Épargne mensuelle enregistrée"); return; }
     const ed = t.dataset && t.dataset.edit;
     if (ed && state) {
       const c = cat(t.dataset.id); if (!c) return;
@@ -2810,38 +2485,29 @@ details.tri-more > .picks2 { margin-top: 8px; }
       else if (ed === "active") c.active = t.checked;
       else if (ed === "selfPay") c.selfPay = t.checked;
       else if (ed === "day") { const v = parseInt(String(t.value).replace(/\D/g, ""), 10); if (t.value.trim() && !(v >= 1 && v <= 31)) { toast("Jour entre 1 et 31"); return; } c.day = v >= 1 && v <= 31 ? v : undefined; }
-      save();
-      shownFree = null; render();
-      toast("Enregistré");
+      save(); shownFree = null; render(); toast("Enregistré");
     }
   });
   document.addEventListener("submit", (e) => {
     e.preventDefault();
     if (e.target.id !== "onbForm") return;
-    const f = e.target;
-    onbCollect();
-    let bad = null;
-    for (const inp of f.querySelectorAll('input[id^="o-"]')) { const raw = inp.value.trim(), v = raw ? parseAmount(raw) : 0; if (!isFinite(v) || v < 0) { inp.closest(".money-in").classList.add("invalid"); bad = bad || inp; } }
-    if (onb.step === 1 && !(parseAmount(onb.vals.salaire) > 0)) { const si = document.getElementById("o-salaire"); si.closest(".money-in").classList.add("invalid"); document.getElementById("onbErr").hidden = false; bad = bad || si; }
-    if (bad) { bad.focus(); return; }
-    if (onb.step < 4) { onb.step++; renderOnboarding(); window.scrollTo(0, 0); const first = app.querySelector('input[id^="o-"]'); if (first) first.focus({ preventScroll: true }); return; }
+    const inp = document.getElementById("o-salaire"), v = parseAmount(inp.value || "");
+    if (!(v > 0)) { inp.closest(".money-in").classList.add("invalid"); document.getElementById("onbErr").hidden = false; inp.focus(); return; }
     const cats = defaultCategories();
-    for (const c of cats) { const v = parseAmount(onb.vals[c.id] || "0"); c.budget = isFinite(v) && v > 0 ? round2(v) : 0; }
-    const g = parseAmount(onb.vals.goal || "0");
-    state = migrate({ v: 2, categories: cats, tx: [], settings: { goal: isFinite(g) && g > 0 ? round2(g) : 0, estimate: false, lastBackup: null, createdAt: new Date().toISOString() } });
-    save(); go("aujourdhui"); toast("C'est prêt");
+    const s = cats.find((c) => c.id === "salaire"); if (s) s.budget = round2(v);
+    state = migrate({ v: 2, categories: cats, tx: [], settings: { goal: 0, estimate: false, lastBackup: null, createdAt: new Date().toISOString() } });
+    migrate8(); save(); go("budget"); toast("Remplis tes charges et tes dépenses : ton épargne se calcule à chaque montant");
   });
 
   function readFile(input, cb) { const file = input.files && input.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => cb(String(r.result || "")); r.onerror = () => toast("Le fichier n'a pas pu être lu"); r.readAsText(file, "utf-8"); }
   csvInput.addEventListener("change", () => readFile(csvInput, (text) => {
     try {
-      const r = importRevolut(text); r.merged = (r.merged || 0) + reconcilePaid(); save(); triSkip = new Set(); viewYM = ymNow(); budgetYM = ymNow(); go("aujourdhui");
-      const extra = [r.pending ? `${r.pending} en attente, à réimporter plus tard` : "", r.merged ? `${r.merged} saisie${r.merged > 1 ? "s" : ""} remplacée${r.merged > 1 ? "s" : ""} par le relevé` : ""].filter(Boolean).join(", ");
+      const r = importRevolut(text); r.merged = (r.merged || 0) + reconcilePaid(); save(); triSkip = new Set(); viewYM = ymNow(); go("mois");
+      const extra = [r.pending ? `${r.pending} en attente, à réimporter plus tard` : "", r.merged ? `${r.merged} ajout${r.merged > 1 ? "s" : ""} remplacé${r.merged > 1 ? "s" : ""} par le relevé` : ""].filter(Boolean).join(", ");
       toast(r.added ? `${r.added} opération${r.added > 1 ? "s" : ""} ajoutée${r.added > 1 ? "s" : ""}${extra ? ` (${extra})` : ""}` : "Rien de nouveau dans ce relevé");
     }
     catch (err) { openSheet(`<h2>Import impossible</h2><p class="hint">${esc(err.message || "Le fichier n'a pas pu être lu.")}</p><div class="sheet-foot"><button class="btn secondary" data-act="closeSheet">Fermer</button></div>`, "Import impossible"); }
   }));
-  journalInput.addEventListener("change", () => readFile(journalInput, (text) => { const r = importJournal(text); save(); go("aujourdhui"); toast(r.added ? `${r.added} paiement${r.added > 1 ? "s" : ""} ajouté${r.added > 1 ? "s" : ""}` : "Aucun nouveau paiement"); }));
   backupInput.addEventListener("change", () => readFile(backupInput, (text) => { const msg = applyBackup(text); if (msg) { if (document.getElementById("rsErr")) showErr("rsErr", msg); else toast(msg); } }));
   window.addEventListener("hashchange", () => {
     if (receiveFromHash()) { render(); return; }
@@ -2849,14 +2515,19 @@ details.tri-more > .picks2 { margin-top: 8px; }
     if (VIEWS.includes(h) && h !== view) { if (sheetHost.innerHTML) sheetHost.innerHTML = ""; go(h); }
   });
   // Au retour dans l'app, les chiffres du jour se recalculent
-  document.addEventListener("visibilitychange", () => { if (!document.hidden && state && view === "aujourdhui" && !sheetHost.innerHTML) render(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && state && view === "mois" && !sheetHost.innerHTML) render(); });
 
+  migrate8();
+  if (state) save();
+  // L'icône de l'écran d'accueil ouvre le dernier onglet utilisé
   const h0 = location.hash.replace("#", "");
-  if (VIEWS.includes(ALIAS[h0] || h0)) view = ALIAS[h0] || h0;
+  const startTab = () => (state && TABS.includes(state.settings.lastTab) ? state.settings.lastTab : "budget");
+  view = !h0 || h0 === "aujourdhui" || h0.startsWith("ajout") ? startTab() : VIEWS.includes(ALIAS[h0] || h0) ? ALIAS[h0] || h0 : startTab();
   const received = receiveFromHash();
+  if (state && location.hash !== "#" + view) { try { window.history.replaceState(null, "", "#" + view); } catch (e) {} }
   render();
   if (received) render();
-  window.__finDeMois = { mergeTwins, savingsFlow, savingsPending, paceOf, get bsBlocked() { return budgetSuggestions.blocked; }, dueReminders, reconcilePaid, reste, famOf, queueState, spentToday, regretLine, carCalc, carOptions, parseCode, nightFacts, txTime, paydayInfo, whatIf, facts, triGroups, coverage, avgDaily, unseen, pace, budgetSuggestions, recurring, importJournal, computeMonth, simulate, importRevolut, classify, suggest, parseAmount, freeToSpend, savingTarget, goalNeed, projection, history, planEnd, applyGroup, merchantGroups, get state() { return state; } };
+  window.__finDeMois = { plan, now, cushion, whatIf, scenOnce, planMonth, evNet, mergeTwins, savingsFlow, savingsPending, monthDone, paceOf, dueReminders: () => [], reconcilePaid, paydayInfo, spentToday, regretLine, txTime, triGroups, coverage, computeMonth, importRevolut, classify, suggest, parseAmount, applyGroup, merchantGroups, get state() { return state; } };
 })();
 
 </script>
